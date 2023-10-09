@@ -42,7 +42,7 @@ struct Header {
 struct Symbol {
     kind: char,
     variable: u64,
-    identifier: Vec<u8>,
+    identifier: String,
 }
 
 #[derive(Debug)]
@@ -134,15 +134,20 @@ fn parse_symbol(input: &[u8]) -> IResult<&[u8], Symbol> {
             |(kind, variable, _, identifier)| Symbol {
                 kind,
                 variable,
-                identifier: identifier.to_vec(),
+                identifier: String::from_utf8(identifier.to_vec()).unwrap(),
             },
         ),
         newline,
     )(input)
 }
 
-fn parse_comment(input: &[u8]) -> IResult<&[u8], &[u8]> {
-    terminated(not_line_ending, newline)(input)
+fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
+    terminated(
+        map(not_line_ending, |s: &[u8]| {
+            String::from_utf8(s.to_vec()).unwrap()
+        }),
+        newline,
+    )(input)
 }
 
 fn aag(
@@ -155,7 +160,7 @@ fn aag(
         Vec<Output>,
         Vec<Gate>,
         Vec<Symbol>,
-        Option<Vec<&[u8]>>,
+        Option<Vec<String>>,
     ),
 > {
     all_consuming(flat_map(header, |h| {
