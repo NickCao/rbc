@@ -7,6 +7,7 @@ use nom::character::complete::one_of;
 use nom::character::complete::space1;
 use nom::character::complete::u64;
 use nom::combinator::all_consuming;
+use nom::combinator::flat_map;
 use nom::combinator::map;
 use nom::combinator::opt;
 use nom::multi::count;
@@ -144,18 +145,31 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], &[u8]> {
     terminated(not_line_ending, newline)(input)
 }
 
-fn aig(input: &[u8]) -> IResult<&[u8], Header> {
-    let h = header(input)?;
-    let d = all_consuming(tuple((
-        count(parse_input, h.1.i.try_into().unwrap()),
-        count(parse_latch, h.1.l.try_into().unwrap()),
-        count(parse_output, h.1.o.try_into().unwrap()),
-        count(parse_gate, h.1.a.try_into().unwrap()),
-        many0(parse_symbol),
-        opt(preceded(tag(b"c\n"), many1(parse_comment))),
-    )))(h.0)?;
-    dbg!(d);
-    Ok(h)
+fn aig(
+    input: &[u8],
+) -> IResult<
+    &[u8],
+    (
+        Vec<Input>,
+        Vec<Latch>,
+        Vec<Output>,
+        Vec<Gate>,
+        Vec<Symbol>,
+        Option<Vec<&[u8]>>,
+    ),
+> {
+    let d = all_consuming(flat_map(header, |h| {
+        tuple((
+            count(parse_input, h.i.try_into().unwrap()),
+            count(parse_latch, h.l.try_into().unwrap()),
+            count(parse_output, h.o.try_into().unwrap()),
+            count(parse_gate, h.a.try_into().unwrap()),
+            many0(parse_symbol),
+            opt(preceded(tag(b"c\n"), many1(parse_comment))),
+        ))
+    }))(input)?;
+    dbg!(&d);
+    Ok(d)
 }
 
 fn main() {
