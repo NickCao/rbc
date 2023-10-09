@@ -145,7 +145,7 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], &[u8]> {
     terminated(not_line_ending, newline)(input)
 }
 
-fn aig(
+fn aag(
     input: &[u8],
 ) -> IResult<
     &[u8],
@@ -158,7 +158,7 @@ fn aig(
         Option<Vec<&[u8]>>,
     ),
 > {
-    let d = all_consuming(flat_map(header, |h| {
+    all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.i.try_into().unwrap()),
             count(parse_latch, h.l.try_into().unwrap()),
@@ -167,14 +167,12 @@ fn aig(
             many0(parse_symbol),
             opt(preceded(tag(b"c\n"), many1(parse_comment))),
         ))
-    }))(input)?;
-    dbg!(&d);
-    Ok(d)
+    }))(input)
 }
 
 fn main() {
     let args = Args::parse();
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
-    dbg!(aig(&buf).unwrap());
+    dbg!(aag(&buf).unwrap());
 }
