@@ -41,7 +41,7 @@ struct Header {
 struct Symbol {
     kind: char,
     variable: u64,
-    identifier: String,
+    identifier: Vec<u8>,
 }
 
 #[derive(Debug)]
@@ -128,11 +128,14 @@ fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
 
 fn parse_symbol(input: &[u8]) -> IResult<&[u8], Symbol> {
     terminated(
-        map(tuple((one_of("ilo"), u64)), |(kind, variable)| Symbol {
-            kind,
-            variable,
-            identifier: "test".to_string(),
-        }),
+        map(
+            tuple((one_of("ilo"), u64::<&[u8], _>, space1, alphanumeric1)),
+            |(kind, variable, _, identifier)| Symbol {
+                kind,
+                variable,
+                identifier: identifier.to_vec(),
+            },
+        ),
         newline,
     )(input)
     /*
