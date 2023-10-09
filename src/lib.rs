@@ -17,10 +17,10 @@ use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Node {
-    Input,
-    Gate,
+    Input(Input),
+    Gate(Gate),
 }
 
 #[derive(Debug)]
@@ -47,22 +47,31 @@ pub struct Symbol {
     pub identifier: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Input(pub Literal);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Output(pub Literal);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Latch(pub Literal, pub Literal);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Gate(pub Literal, pub Literal, pub Literal);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Literal {
     pub variable: u64,
     pub negate: bool,
+}
+
+impl Literal {
+    pub fn eval(&self, graph: &AIG, inputs: &[bool]) -> bool {
+        match graph.0[self.variable as usize].clone().unwrap() {
+            Node::Input(Input(input)) => inputs[input.variable as usize] ^ input.negate,
+            Node::Gate(Gate(o, a, b)) => a.eval(graph, inputs) && b.eval(graph, inputs) ^ o.negate,
+        }
+    }
 }
 
 impl From<u64> for Literal {
