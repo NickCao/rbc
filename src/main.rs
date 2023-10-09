@@ -37,7 +37,7 @@ struct Input {
 
 fn header(input: &[u8]) -> IResult<&[u8], Header> {
     delimited(
-        tag(b"aig"),
+        tag(b"aag"),
         map(
             tuple((
                 space1, u64, space1, u64, space1, u64, space1, u64, space1, u64,
