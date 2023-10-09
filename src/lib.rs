@@ -1,4 +1,3 @@
-use clap::Parser;
 use nom::bytes::complete::tag;
 use nom::character::complete::alphanumeric1;
 use nom::character::complete::newline;
@@ -17,52 +16,53 @@ use nom::sequence::delimited;
 use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
-use std::io::Read;
 
-struct AIG {
-    inputs: Vec<Input>,
-    latches: Vec<Latch>,
-    outputs: Vec<Output>,
-    gates: Vec<Gate>,
+#[derive(Debug)]
+pub enum Node {
+    Input,
+    Gate,
 }
+
+#[derive(Debug)]
+pub struct AIG(Vec<Option<Node>>);
 
 #[derive(Debug)]
 pub struct Header {
     /// M = maximum variable index
-    max_index: u64,
+    pub max_index: u64,
     /// I = number of inputs
-    inputs: u64,
+    pub inputs: u64,
     /// L = number of latches
-    latches: u64,
+    pub latches: u64,
     /// O = number of outputs
-    outputs: u64,
+    pub outputs: u64,
     /// A = number of AND gates
-    gates: u64,
+    pub gates: u64,
 }
 
 #[derive(Debug)]
 pub struct Symbol {
-    kind: char,
-    variable: u64,
-    identifier: String,
+    pub kind: char,
+    pub variable: u64,
+    pub identifier: String,
 }
 
 #[derive(Debug)]
-pub struct Input(Literal);
+pub struct Input(pub Literal);
 
 #[derive(Debug)]
-pub struct Output(Literal);
+pub struct Output(pub Literal);
 
 #[derive(Debug)]
-pub struct Latch(Literal, Literal);
+pub struct Latch(pub Literal, pub Literal);
 
 #[derive(Debug)]
-pub struct Gate(Literal, Literal, Literal);
+pub struct Gate(pub Literal, pub Literal, pub Literal);
 
 #[derive(Debug)]
 pub struct Literal {
-    variable: u64,
-    negate: bool,
+    pub variable: u64,
+    pub negate: bool,
 }
 
 impl From<u64> for Literal {
