@@ -32,25 +32,40 @@ struct Header {
 
 #[derive(Debug)]
 struct Input {
-    i: u64,
+    i: Literal,
 }
 
 #[derive(Debug)]
 struct Output {
-    o: u64,
+    o: Literal,
 }
 
 #[derive(Debug)]
 struct Latch {
-    i: u64,
-    o: u64,
+    i: Literal,
+    o: Literal,
 }
 
 #[derive(Debug)]
 struct Gate {
-    a: u64,
-    b: u64,
-    o: u64,
+    a: Literal,
+    b: Literal,
+    o: Literal,
+}
+
+#[derive(Debug)]
+struct Literal {
+    variable: u64,
+    negate: bool,
+}
+
+impl From<u64> for Literal {
+    fn from(value: u64) -> Self {
+        Self {
+            variable: value / 2,
+            negate: value % 2 == 1,
+        }
+    }
 }
 
 fn header(input: &[u8]) -> IResult<&[u8], Header> {
@@ -67,18 +82,18 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
 }
 
 fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
-    terminated(map(u64, |i| Input { i }), newline)(input)
+    terminated(map(u64, |i| Input { i: i.into() }), newline)(input)
 }
 
 fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
-    terminated(map(u64, |o| Output { o }), newline)(input)
+    terminated(map(u64, |o| Output { o: o.into() }), newline)(input)
 }
 
 fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
     terminated(
         map(tuple((space1, u64, space1, u64)), |(_, i, _, o)| Latch {
-            i,
-            o,
+            i: i.into(),
+            o: o.into(),
         }),
         newline,
     )(input)
@@ -87,7 +102,11 @@ fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
 fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
     terminated(
         map(tuple((u64, space1, u64, space1, u64)), |(o, _, a, _, b)| {
-            Gate { a, b, o }
+            Gate {
+                a: a.into(),
+                b: b.into(),
+                o: o.into(),
+            }
         }),
         newline,
     )(input)
