@@ -48,14 +48,10 @@ pub struct Symbol {
 }
 
 #[derive(Debug)]
-pub struct Input {
-    i: Literal,
-}
+pub struct Input(Literal);
 
 #[derive(Debug)]
-pub struct Output {
-    o: Literal,
-}
+pub struct Output(Literal);
 
 #[derive(Debug)]
 pub struct Latch {
@@ -105,11 +101,11 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
 }
 
 fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
-    terminated(map(u64, |i| Input { i: i.into() }), newline)(input)
+    terminated(map(u64, |i| Input(i.into())), newline)(input)
 }
 
 fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
-    terminated(map(u64, |o| Output { o: o.into() }), newline)(input)
+    terminated(map(u64, |o| Output(o.into())), newline)(input)
 }
 
 fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {

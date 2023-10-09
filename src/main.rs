@@ -1,6 +1,6 @@
 use clap::Parser;
-use rbc::aag;
-use std::io::Read;
+use rbc::{aag, Gate, Input};
+use std::{collections::HashMap, io::Read};
 
 /// RBC: System for Combinational Logic Synthesis
 #[derive(Parser, Debug)]
@@ -11,5 +11,6 @@ fn main() {
     let args = Args::parse();
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
-    dbg!(aag(&buf).unwrap());
+    let graph = aag(&buf).unwrap();
+    dbg!(&graph);
 }
