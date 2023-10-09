@@ -4,7 +4,9 @@ use nom::character::complete::newline;
 use nom::character::complete::space1;
 use nom::character::complete::u64;
 use nom::combinator::map;
+use nom::multi::count;
 use nom::sequence::delimited;
+use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 use std::io::Read;
@@ -14,7 +16,6 @@ use std::io::Read;
 #[command(author, version, about, long_about = None)]
 struct Args {}
 
-#[allow(non_snake_case)]
 #[derive(Debug)]
 struct Header {
     /// M = maximum variable index
@@ -27,6 +28,11 @@ struct Header {
     o: u64,
     /// A = number of AND gates
     a: u64,
+}
+
+#[derive(Debug)]
+struct Input {
+    i: u64,
 }
 
 fn header(input: &[u8]) -> IResult<&[u8], Header> {
@@ -42,8 +48,14 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
     )(input)
 }
 
+fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
+    terminated(map(u64, |i| Input { i }), newline)(input)
+}
+
 fn aig(input: &[u8]) -> IResult<&[u8], Header> {
     let h = header(input)?;
+    let i = count(parse_input, h.1.i.try_into().unwrap())(h.0)?;
+    dbg!(i);
     Ok(h)
 }
 
