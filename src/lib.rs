@@ -54,17 +54,10 @@ pub struct Input(Literal);
 pub struct Output(Literal);
 
 #[derive(Debug)]
-pub struct Latch {
-    i: Literal,
-    o: Literal,
-}
+pub struct Latch(Literal, Literal);
 
 #[derive(Debug)]
-pub struct Gate {
-    a: Literal,
-    b: Literal,
-    o: Literal,
-}
+pub struct Gate(Literal, Literal, Literal);
 
 #[derive(Debug)]
 pub struct Literal {
@@ -110,9 +103,8 @@ fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
 
 fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
     terminated(
-        map(tuple((space1, u64, space1, u64)), |(_, i, _, o)| Latch {
-            i: i.into(),
-            o: o.into(),
+        map(tuple((space1, u64, space1, u64)), |(_, i, _, o)| {
+            Latch(o.into(), i.into())
         }),
         newline,
     )(input)
@@ -121,11 +113,7 @@ fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
 fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
     terminated(
         map(tuple((u64, space1, u64, space1, u64)), |(o, _, a, _, b)| {
-            Gate {
-                a: a.into(),
-                b: b.into(),
-                o: o.into(),
-            }
+            Gate(o.into(), a.into(), b.into())
         }),
         newline,
     )(input)
