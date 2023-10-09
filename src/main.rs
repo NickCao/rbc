@@ -128,9 +128,9 @@ fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
 
 fn parse_symbol(input: &[u8]) -> IResult<&[u8], Symbol> {
     terminated(
-        map(tuple(()), |()| Symbol {
-            kind: 'a',
-            variable: 0,
+        map(tuple((one_of("ilo"), u64)), |(kind, variable)| Symbol {
+            kind,
+            variable,
             identifier: "test".to_string(),
         }),
         newline,
