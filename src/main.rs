@@ -1,17 +1,17 @@
 use clap::Parser;
-use nom::bytes::complete::is_not;
 use nom::bytes::complete::tag;
-use nom::bytes::complete::take_till;
-use nom::character::complete::alpha1;
 use nom::character::complete::alphanumeric1;
 use nom::character::complete::newline;
+use nom::character::complete::not_line_ending;
 use nom::character::complete::one_of;
 use nom::character::complete::space1;
 use nom::character::complete::u64;
-use nom::character::is_newline;
+use nom::combinator::all_consuming;
 use nom::combinator::map;
+use nom::combinator::opt;
 use nom::multi::count;
 use nom::multi::many0;
+use nom::multi::many1;
 use nom::sequence::delimited;
 use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
@@ -138,30 +138,22 @@ fn parse_symbol(input: &[u8]) -> IResult<&[u8], Symbol> {
         ),
         newline,
     )(input)
-    /*
-    terminated(
-        map(
-            tuple((alphanumeric1, space1, alphanumeric1)),
-            |(kind, _, identifier)| Symbol {
-                kind,
-                variable,
-                identifier: identifier.to_string(),
-            },
-        ),
-        newline,
-    )(input)
-    */
+}
+
+fn parse_comment(input: &[u8]) -> IResult<&[u8], &[u8]> {
+    terminated(not_line_ending, newline)(input)
 }
 
 fn aig(input: &[u8]) -> IResult<&[u8], Header> {
     let h = header(input)?;
-    let d = tuple((
+    let d = all_consuming(tuple((
         count(parse_input, h.1.i.try_into().unwrap()),
         count(parse_latch, h.1.l.try_into().unwrap()),
         count(parse_output, h.1.o.try_into().unwrap()),
         count(parse_gate, h.1.a.try_into().unwrap()),
         many0(parse_symbol),
-    ))(h.0)?;
+        opt(preceded(tag(b"c\n"), many1(parse_comment))),
+    )))(h.0)?;
     dbg!(d);
     Ok(h)
 }
