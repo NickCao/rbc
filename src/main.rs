@@ -35,6 +35,24 @@ struct Input {
     i: u64,
 }
 
+#[derive(Debug)]
+struct Output {
+    o: u64,
+}
+
+#[derive(Debug)]
+struct Latch {
+    i: u64,
+    o: u64,
+}
+
+#[derive(Debug)]
+struct Gate {
+    a: u64,
+    b: u64,
+    o: u64,
+}
+
 fn header(input: &[u8]) -> IResult<&[u8], Header> {
     delimited(
         tag(b"aag"),
@@ -52,10 +70,38 @@ fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
     terminated(map(u64, |i| Input { i }), newline)(input)
 }
 
+fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
+    terminated(map(u64, |o| Output { o }), newline)(input)
+}
+
+fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
+    terminated(
+        map(tuple((space1, u64, space1, u64)), |(_, i, _, o)| Latch {
+            i,
+            o,
+        }),
+        newline,
+    )(input)
+}
+
+fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
+    terminated(
+        map(tuple((u64, space1, u64, space1, u64)), |(o, _, a, _, b)| {
+            Gate { a, b, o }
+        }),
+        newline,
+    )(input)
+}
+
 fn aig(input: &[u8]) -> IResult<&[u8], Header> {
     let h = header(input)?;
-    let i = count(parse_input, h.1.i.try_into().unwrap())(h.0)?;
-    dbg!(i);
+    let d = tuple((
+        count(parse_input, h.1.i.try_into().unwrap()),
+        count(parse_latch, h.1.l.try_into().unwrap()),
+        count(parse_output, h.1.o.try_into().unwrap()),
+        count(parse_gate, h.1.a.try_into().unwrap()),
+    ))(h.0)?;
+    dbg!(d);
     Ok(h)
 }
 
