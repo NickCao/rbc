@@ -13,11 +13,16 @@ fn main() {
     std::io::stdin().read_to_end(&mut buf).unwrap();
     let graph = aag(&buf).unwrap().1;
 
-    for thing in &graph.1 {
-        println!(
-            "output {} is {}",
-            *thing,
-            &graph.0[*thing as usize].eval(&graph.0, &[true, true])
-        );
+    for x in [false, true] {
+        for y in [false, true] {
+            println!("input {} {}", x, y);
+            for thing in &graph.1 {
+                println!(
+                    "output {} is {}",
+                    *thing,
+                    &graph.0[*thing as usize].eval(&graph.0, &[x, y])
+                );
+            }
+        }
     }
 }
