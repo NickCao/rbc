@@ -39,18 +39,27 @@ pub struct Symbol {
 }
 
 #[derive(Debug, Clone)]
-pub struct Input {
-    variable: usize,
+pub struct I {
+    pub variable: usize,
 }
 
 #[derive(Debug, Clone)]
-pub struct Output(pub usize);
+pub struct O {
+    pub variable: usize,
+    pub negate: usize,
+}
 
 #[derive(Debug, Clone)]
 pub struct Latch(pub usize, pub usize);
 
 #[derive(Debug, Clone)]
-pub struct Gate(pub usize, pub usize, pub usize);
+pub struct A {
+    pub lhs: usize,
+    pub rhs0: usize,
+    pub rhs0_negate: usize,
+    pub rhs1: usize,
+    pub rhs1_negate: usize,
+}
 
 fn header(input: &[u8]) -> IResult<&[u8], Header> {
     delimited(
@@ -71,17 +80,23 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
     )(input)
 }
 
-fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
+fn parse_input(input: &[u8]) -> IResult<&[u8], I> {
     terminated(
-        map(u64, |i| Input {
+        map(u64, |i| I {
             variable: i as usize >> 2, // FIXME: check that input is even
         }),
         newline,
     )(input)
 }
 
-fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
-    terminated(map(u64, |o| Output(o as usize)), newline)(input)
+fn parse_output(input: &[u8]) -> IResult<&[u8], O> {
+    terminated(
+        map(u64, |o| O {
+            variable: o as usize >> 2,
+            negate: o as usize & 1,
+        }),
+        newline,
+    )(input)
 }
 
 fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
@@ -93,10 +108,16 @@ fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
     )(input)
 }
 
-fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
+fn parse_gate(input: &[u8]) -> IResult<&[u8], A> {
     terminated(
         map(tuple((u64, space1, u64, space1, u64)), |(o, _, a, _, b)| {
-            Gate(o as usize, a as usize, b as usize)
+            A {
+                lhs: o as usize >> 2, // FIXME: check even
+                rhs0: a as usize >> 2,
+                rhs0_negate: a as usize & 1,
+                rhs1: b as usize >> 2,
+                rhs1_negate: b as usize & 1,
+            }
         }),
         newline,
     )(input)
@@ -125,8 +146,20 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
     )(input)
 }
 
-pub fn aag(input: &[u8]) -> IResult<&[u8], Aiger> {
-    let graph = all_consuming(flat_map(header, |h| {
+pub fn aag(
+    input: &[u8],
+) -> IResult<
+    &[u8],
+    (
+        Vec<I>,
+        Vec<Latch>,
+        Vec<O>,
+        Vec<A>,
+        Vec<Symbol>,
+        Option<Vec<String>>,
+    ),
+> {
+    all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
             count(parse_latch, h.latches.try_into().unwrap()),
@@ -135,25 +168,5 @@ pub fn aag(input: &[u8]) -> IResult<&[u8], Aiger> {
             many0(parse_symbol),
             opt(preceded(tag(b"c\n"), many1(parse_comment))),
         ))
-    }))(input)?
-    .1;
-    let mut aiger = Aiger {
-        outputs: vec![],
-        ands: vec![],
-        current: vec![0; 1000],
-    };
-    for gate in graph.3 {
-        aiger.ands.push(AigerAnd {
-            lhs: gate.0,
-            rhs0: gate.1,
-            rhs1: gate.2,
-        });
-    }
-    for output in graph.2 {
-        aiger.outputs.push(AigerSymbol {
-            name: "".to_string(),
-            lit: output.0,
-        })
-    }
-    Ok((&[], aiger))
+    }))(input)
 }

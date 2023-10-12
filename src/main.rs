@@ -11,4 +11,6 @@ fn main() {
 
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
+
+    dbg!(rbc::de::aag(&buf));
 }
