@@ -63,7 +63,12 @@ pub struct Input(pub Literal);
 
 impl Eval for Input {
     fn eval(&self, _graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        inputs[self.0.variable as usize] ^ self.0.negate
+        let result = inputs[self.0.variable as usize] ^ self.0.negate;
+        println!(
+            "input {}, negate {}, output {}",
+            self.0.variable, self.0.negate, result
+        );
+        result
     }
 }
 
@@ -78,9 +83,14 @@ pub struct Gate(pub Literal, pub Literal, pub Literal);
 
 impl Eval for Gate {
     fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        graph[self.1.variable as usize].eval(graph, inputs)
-            & graph[self.2.variable as usize].eval(graph, inputs)
-            ^ self.0.negate
+        let a = graph[self.1.variable as usize].eval(graph, inputs);
+        let b = graph[self.2.variable as usize].eval(graph, inputs);
+        let result = (a & b) ^ self.0.negate;
+        println!(
+            "gate {}, invert {}, output {}, a {}, b {}",
+            self.0.variable, self.0.negate, result, a, b
+        );
+        result
     }
 }
 

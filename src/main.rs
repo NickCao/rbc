@@ -23,6 +23,7 @@ fn main() {
                     &graph.0[*thing as usize].eval(&graph.0, &[false, x, y])
                 );
             }
+            println!();
         }
     }
 }
