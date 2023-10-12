@@ -17,45 +17,6 @@ use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-pub struct AigerSymbol {
-    pub name: String,
-    pub lit: usize,
-}
-
-pub struct AigerAnd {
-    pub lhs: usize,
-    pub rhs0: usize,
-    pub rhs1: usize,
-}
-
-pub struct Aiger {
-    pub outputs: Vec<AigerSymbol>,
-    pub ands: Vec<AigerAnd>,
-    pub current: Vec<usize>,
-}
-
-impl Aiger {
-    pub fn simulate(&mut self, inputs: &[usize]) {
-        println!("inputs");
-        for (i, value) in inputs.iter().enumerate() {
-            self.current[i] = *value;
-            println!("{}", *value);
-        }
-        for and in &self.ands {
-            let l = self.current[and.rhs0 >> 1] ^ (and.rhs0 & 1);
-            let r = self.current[and.rhs1 >> 1] ^ (and.rhs1 & 1);
-            let mut tmp = l & r;
-            tmp |= l & (r << 1);
-            tmp |= r & (l << 1);
-            self.current[and.lhs >> 1] = tmp;
-        }
-        println!("outputs");
-        for out in &self.outputs {
-            println!("{}", self.current[out.lit >> 1] ^ (out.lit & 1));
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct Header {
     /// M = maximum variable index
@@ -78,7 +39,9 @@ pub struct Symbol {
 }
 
 #[derive(Debug, Clone)]
-pub struct Input(pub usize);
+pub struct Input {
+    variable: usize,
+}
 
 #[derive(Debug, Clone)]
 pub struct Output(pub usize);
@@ -109,7 +72,12 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
 }
 
 fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
-    terminated(map(u64, |i| Input(i as usize)), newline)(input)
+    terminated(
+        map(u64, |i| Input {
+            variable: i as usize >> 2, // FIXME: check that input is even
+        }),
+        newline,
+    )(input)
 }
 
 fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
