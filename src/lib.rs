@@ -17,14 +17,25 @@ use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-#[derive(Debug, Clone)]
-pub enum Node {
-    Input(Input),
-    Gate(Gate),
+pub trait Eval {
+    fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool;
 }
 
 #[derive(Debug)]
-pub struct AIG(Vec<Option<Node>>);
+pub struct AIG {
+    pub inputs: Vec<Input>,
+    pub gates: Vec<Gate>,
+    pub outputs: Vec<Output>,
+}
+
+#[derive(Clone)]
+pub struct Empty();
+
+impl Eval for Empty {
+    fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
+        false
+    }
+}
 
 #[derive(Debug)]
 pub struct Header {
@@ -50,6 +61,13 @@ pub struct Symbol {
 #[derive(Debug, Clone)]
 pub struct Input(pub Literal);
 
+impl Eval for Input {
+    fn eval(&self, _graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
+        println!("eval input {}", self.0.variable);
+        inputs[self.0.variable as usize - 1] ^ self.0.negate
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Output(pub Literal);
 
@@ -59,19 +77,22 @@ pub struct Latch(pub Literal, pub Literal);
 #[derive(Debug, Clone)]
 pub struct Gate(pub Literal, pub Literal, pub Literal);
 
+impl Eval for Gate {
+    fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
+        println!(
+            "eval gate {} from {} {}",
+            self.0.variable, self.1.variable, self.2.variable
+        );
+        graph[self.1.variable as usize - 1].eval(graph, inputs)
+            & graph[self.2.variable as usize - 1].eval(graph, inputs)
+            ^ self.0.negate
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Literal {
     pub variable: u64,
     pub negate: bool,
-}
-
-impl Literal {
-    pub fn eval(&self, graph: &AIG, inputs: &[bool]) -> bool {
-        match graph.0[self.variable as usize].clone().unwrap() {
-            Node::Input(Input(input)) => inputs[input.variable as usize] ^ input.negate,
-            Node::Gate(Gate(o, a, b)) => a.eval(graph, inputs) && b.eval(graph, inputs) ^ o.negate,
-        }
-    }
 }
 
 impl From<u64> for Literal {
@@ -151,20 +172,8 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
     )(input)
 }
 
-pub fn aag(
-    input: &[u8],
-) -> IResult<
-    &[u8],
-    (
-        Vec<Input>,
-        Vec<Latch>,
-        Vec<Output>,
-        Vec<Gate>,
-        Vec<Symbol>,
-        Option<Vec<String>>,
-    ),
-> {
-    all_consuming(flat_map(header, |h| {
+pub fn aag(input: &[u8]) -> IResult<&[u8], Vec<Box<dyn Eval>>> {
+    let graph = all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
             count(parse_latch, h.latches.try_into().unwrap()),
@@ -173,5 +182,41 @@ pub fn aag(
             many0(parse_symbol),
             opt(preceded(tag(b"c\n"), many1(parse_comment))),
         ))
-    }))(input)
+    }))(input)?
+    .1;
+    let mut result: Vec<Box<dyn Eval>> = vec![
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+        Box::new(Empty()),
+    ];
+    for input in graph.0 {
+        result[input.0.variable as usize] = Box::new(input.clone());
+    }
+    for gate in graph.3 {
+        result[gate.0.variable as usize] = Box::new(gate.clone());
+    }
+    println!("done");
+    Ok((&[], result))
 }

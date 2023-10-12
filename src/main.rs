@@ -11,6 +11,9 @@ fn main() {
     let args = Args::parse();
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
-    let graph = aag(&buf).unwrap();
-    dbg!(&graph);
+    let graph = aag(&buf).unwrap().1;
+
+    for thing in &graph {
+        dbg!(thing.eval(&graph, &[true, true]));
+    }
 }
