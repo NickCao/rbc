@@ -50,7 +50,11 @@ pub struct O {
 }
 
 #[derive(Debug, Clone)]
-pub struct Latch(pub usize, pub usize);
+pub struct L {
+    pub lhs: usize,
+    pub rhs: usize,
+    pub rhs_negate: usize,
+}
 
 #[derive(Debug, Clone)]
 pub struct A {
@@ -99,10 +103,14 @@ fn parse_output(input: &[u8]) -> IResult<&[u8], O> {
     )(input)
 }
 
-fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
+fn parse_latch(input: &[u8]) -> IResult<&[u8], L> {
     terminated(
-        map(tuple((space1, u64, space1, u64)), |(_, i, _, o)| {
-            Latch(o as usize, i as usize)
+        map(tuple((space1, u64, space1, u64)), |(_, o, _, a)| {
+            L {
+                lhs: o as usize >> 1, // FIXME: check even
+                rhs: a as usize >> 1,
+                rhs_negate: a as usize & 1,
+            }
         }),
         newline,
     )(input)
@@ -152,7 +160,7 @@ pub fn aag(
     &[u8],
     (
         Vec<I>,
-        Vec<Latch>,
+        Vec<L>,
         Vec<O>,
         Vec<A>,
         Vec<Symbol>,
