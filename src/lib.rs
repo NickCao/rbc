@@ -17,23 +17,42 @@ use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-pub trait Eval {
-    fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool;
+pub struct AigerSymbol {
+    pub name: String,
+    pub lit: usize,
 }
 
-#[derive(Debug)]
-pub struct AIG {
-    pub inputs: Vec<Input>,
-    pub gates: Vec<Gate>,
-    pub outputs: Vec<Output>,
+pub struct AigerAnd {
+    pub lhs: usize,
+    pub rhs0: usize,
+    pub rhs1: usize,
 }
 
-#[derive(Clone)]
-pub struct Empty();
+pub struct Aiger {
+    pub outputs: Vec<AigerSymbol>,
+    pub ands: Vec<AigerAnd>,
+    pub current: Vec<usize>,
+}
 
-impl Eval for Empty {
-    fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        false
+impl Aiger {
+    pub fn simulate(&mut self, inputs: &[usize]) {
+        println!("inputs");
+        for (i, value) in inputs.iter().enumerate() {
+            self.current[i] = *value;
+            println!("{}", *value);
+        }
+        for and in &self.ands {
+            let l = self.current[and.rhs0 >> 1] ^ (and.rhs0 & 1);
+            let r = self.current[and.rhs1 >> 1] ^ (and.rhs1 & 1);
+            let mut tmp = l & r;
+            tmp |= l & (r << 1);
+            tmp |= r & (l << 1);
+            self.current[and.lhs >> 1] = tmp;
+        }
+        println!("outputs");
+        for out in &self.outputs {
+            println!("{}", self.current[out.lit >> 1] ^ (out.lit & 1));
+        }
     }
 }
 
@@ -59,55 +78,16 @@ pub struct Symbol {
 }
 
 #[derive(Debug, Clone)]
-pub struct Input(pub Literal);
-
-impl Eval for Input {
-    fn eval(&self, _graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        let result = inputs[self.0.variable as usize] ^ self.0.negate;
-        println!(
-            "input {}, negate {}, output {}",
-            self.0.variable, self.0.negate, result
-        );
-        result
-    }
-}
+pub struct Input(pub usize);
 
 #[derive(Debug, Clone)]
-pub struct Output(pub Literal);
+pub struct Output(pub usize);
 
 #[derive(Debug, Clone)]
-pub struct Latch(pub Literal, pub Literal);
+pub struct Latch(pub usize, pub usize);
 
 #[derive(Debug, Clone)]
-pub struct Gate(pub Literal, pub Literal, pub Literal);
-
-impl Eval for Gate {
-    fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        let a = graph[self.1.variable as usize].eval(graph, inputs);
-        let b = graph[self.2.variable as usize].eval(graph, inputs);
-        let result = (a & b) ^ self.0.negate;
-        println!(
-            "gate {}, invert {}, output {}, a {}, b {}",
-            self.0.variable, self.0.negate, result, a, b
-        );
-        result
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Literal {
-    pub variable: u64,
-    pub negate: bool,
-}
-
-impl From<u64> for Literal {
-    fn from(value: u64) -> Self {
-        Self {
-            variable: value / 2,
-            negate: value % 2 == 1,
-        }
-    }
-}
+pub struct Gate(pub usize, pub usize, pub usize);
 
 fn header(input: &[u8]) -> IResult<&[u8], Header> {
     delimited(
@@ -129,17 +109,17 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
 }
 
 fn parse_input(input: &[u8]) -> IResult<&[u8], Input> {
-    terminated(map(u64, |i| Input(i.into())), newline)(input)
+    terminated(map(u64, |i| Input(i as usize)), newline)(input)
 }
 
 fn parse_output(input: &[u8]) -> IResult<&[u8], Output> {
-    terminated(map(u64, |o| Output(o.into())), newline)(input)
+    terminated(map(u64, |o| Output(o as usize)), newline)(input)
 }
 
 fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
     terminated(
         map(tuple((space1, u64, space1, u64)), |(_, i, _, o)| {
-            Latch(o.into(), i.into())
+            Latch(o as usize, i as usize)
         }),
         newline,
     )(input)
@@ -148,7 +128,7 @@ fn parse_latch(input: &[u8]) -> IResult<&[u8], Latch> {
 fn parse_gate(input: &[u8]) -> IResult<&[u8], Gate> {
     terminated(
         map(tuple((u64, space1, u64, space1, u64)), |(o, _, a, _, b)| {
-            Gate(o.into(), a.into(), b.into())
+            Gate(o as usize, a as usize, b as usize)
         }),
         newline,
     )(input)
@@ -177,7 +157,7 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
     )(input)
 }
 
-pub fn aag(input: &[u8]) -> IResult<&[u8], (Vec<Box<dyn Eval>>, Vec<u64>)> {
+pub fn aag(input: &[u8]) -> IResult<&[u8], Aiger> {
     let graph = all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
@@ -189,42 +169,23 @@ pub fn aag(input: &[u8]) -> IResult<&[u8], (Vec<Box<dyn Eval>>, Vec<u64>)> {
         ))
     }))(input)?
     .1;
-    let mut result: Vec<Box<dyn Eval>> = vec![
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-        Box::new(Empty()),
-    ];
-    for input in graph.0 {
-        result[input.0.variable as usize] = Box::new(input.clone());
-    }
+    let mut aiger = Aiger {
+        outputs: vec![],
+        ands: vec![],
+        current: vec![0; 1000],
+    };
     for gate in graph.3 {
-        result[gate.0.variable as usize] = Box::new(gate.clone());
+        aiger.ands.push(AigerAnd {
+            lhs: gate.0,
+            rhs0: gate.1,
+            rhs1: gate.2,
+        });
     }
-    let mut outputs = vec![];
     for output in graph.2 {
-        outputs.push(output.0.variable);
+        aiger.outputs.push(AigerSymbol {
+            name: "".to_string(),
+            lit: output.0,
+        })
     }
-    Ok((&[], (result, outputs)))
+    Ok((&[], aiger))
 }

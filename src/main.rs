@@ -11,19 +11,11 @@ fn main() {
     let args = Args::parse();
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
-    let graph = aag(&buf).unwrap().1;
+    let mut graph = aag(&buf).unwrap().1;
 
-    for x in [false, true] {
-        for y in [false, true] {
-            println!("input {} {}", x, y);
-            for thing in &graph.1 {
-                println!(
-                    "output {} is {}",
-                    *thing,
-                    &graph.0[*thing as usize].eval(&graph.0, &[false, x, y])
-                );
-            }
-            println!();
+    for x in [0, 1] {
+        for y in [0, 1] {
+            graph.simulate(&[x, y]);
         }
     }
 }
