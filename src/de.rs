@@ -161,7 +161,7 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
 
 pub fn aag(
     input: &[u8],
-) -> Result<(Vec<I>, Vec<L>, Vec<O>, Vec<A>, Option<Vec<String>>), nom::error::Error<&[u8]>> {
+) -> Result<(Vec<I>, Vec<O>, Vec<A>, Option<Vec<String>>), nom::error::Error<&[u8]>> {
     let mut result = all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
@@ -184,5 +184,5 @@ pub fn aag(
         }
     }
 
-    Ok((result.0, result.1, result.2, result.3, result.5))
+    Ok((result.0, result.2, result.3, result.5))
 }
