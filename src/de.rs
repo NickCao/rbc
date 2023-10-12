@@ -35,19 +35,21 @@ pub struct Header {
 #[derive(Debug)]
 pub struct Symbol {
     pub kind: char,
-    pub variable: u64,
+    pub variable: usize,
     pub identifier: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct I {
     pub variable: usize,
+    pub symbol: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct O {
     pub variable: usize,
     pub negate: usize,
+    pub symbol: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -89,6 +91,7 @@ fn parse_input(input: &[u8]) -> IResult<&[u8], I> {
     terminated(
         map(u64, |i| I {
             variable: i as usize >> 1, // FIXME: check that input is even
+            symbol: None,
         }),
         newline,
     )(input)
@@ -99,6 +102,7 @@ fn parse_output(input: &[u8]) -> IResult<&[u8], O> {
         map(u64, |o| O {
             variable: o as usize >> 1,
             negate: o as usize & 1,
+            symbol: None,
         }),
         newline,
     )(input)
@@ -138,7 +142,7 @@ fn parse_symbol(input: &[u8]) -> IResult<&[u8], Symbol> {
             tuple((one_of("ilo"), u64::<&[u8], _>, space1, alphanumeric1)),
             |(kind, variable, _, identifier)| Symbol {
                 kind,
-                variable,
+                variable: variable as usize,
                 identifier: String::from_utf8(identifier.to_vec()).unwrap(),
             },
         ),
@@ -157,18 +161,8 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
 
 pub fn aag(
     input: &[u8],
-) -> Result<
-    (
-        Vec<I>,
-        Vec<L>,
-        Vec<O>,
-        Vec<A>,
-        Vec<Symbol>,
-        Option<Vec<String>>,
-    ),
-    nom::error::Error<&[u8]>,
-> {
-    Ok(all_consuming(flat_map(header, |h| {
+) -> Result<(Vec<I>, Vec<L>, Vec<O>, Vec<A>, Option<Vec<String>>), nom::error::Error<&[u8]>> {
+    let mut result = all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
             count(parse_latch, h.latches.try_into().unwrap()),
@@ -179,5 +173,16 @@ pub fn aag(
         ))
     }))(input)
     .finish()?
-    .1)
+    .1;
+
+    for sym in &result.4 {
+        match sym.kind {
+            'i' => result.0[sym.variable].symbol = Some(sym.identifier.clone()),
+            'o' => result.2[sym.variable].symbol = Some(sym.identifier.clone()),
+            'l' => unimplemented!(),
+            _ => unreachable!(),
+        }
+    }
+
+    Ok((result.0, result.1, result.2, result.3, result.5))
 }
