@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::{
     collections::{HashMap, VecDeque},
+    fmt::Debug,
     io::Read,
     rc::Rc,
 };
@@ -10,27 +11,51 @@ use std::{
 #[command(author, version, about, long_about = None)]
 struct Args {}
 
-#[derive(Debug)]
 struct Input {
     symbol: String,
 }
 
-#[derive(Debug)]
+impl Debug for Input {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{}", self.symbol))
+    }
+}
+
 struct Negate {
     rhs: Rc<Node>,
 }
 
-#[derive(Debug)]
+impl Debug for Negate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("!({:?})", self.rhs))
+    }
+}
+
 struct And {
     rhs0: Rc<Node>,
     rhs1: Rc<Node>,
 }
 
-#[derive(Debug)]
+impl Debug for And {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("({:?} & {:?})", self.rhs0, self.rhs1))
+    }
+}
+
 enum Node {
     I(Input),
     N(Negate),
     A(And),
+}
+
+impl Debug for Node {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Node::I(i) => i.fmt(f),
+            Node::N(i) => i.fmt(f),
+            Node::A(i) => i.fmt(f),
+        }
+    }
 }
 
 impl Node {
