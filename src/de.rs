@@ -83,7 +83,7 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
 fn parse_input(input: &[u8]) -> IResult<&[u8], I> {
     terminated(
         map(u64, |i| I {
-            variable: i as usize >> 2, // FIXME: check that input is even
+            variable: i as usize >> 1, // FIXME: check that input is even
         }),
         newline,
     )(input)
@@ -92,7 +92,7 @@ fn parse_input(input: &[u8]) -> IResult<&[u8], I> {
 fn parse_output(input: &[u8]) -> IResult<&[u8], O> {
     terminated(
         map(u64, |o| O {
-            variable: o as usize >> 2,
+            variable: o as usize >> 1,
             negate: o as usize & 1,
         }),
         newline,
@@ -112,10 +112,10 @@ fn parse_gate(input: &[u8]) -> IResult<&[u8], A> {
     terminated(
         map(tuple((u64, space1, u64, space1, u64)), |(o, _, a, _, b)| {
             A {
-                lhs: o as usize >> 2, // FIXME: check even
-                rhs0: a as usize >> 2,
+                lhs: o as usize >> 1, // FIXME: check even
+                rhs0: a as usize >> 1,
                 rhs0_negate: a as usize & 1,
-                rhs1: b as usize >> 2,
+                rhs1: b as usize >> 1,
                 rhs1_negate: b as usize & 1,
             }
         }),
