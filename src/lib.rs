@@ -207,10 +207,10 @@ pub fn aag(input: &[u8]) -> IResult<&[u8], (Vec<Box<dyn Eval>>, Vec<u64>)> {
         Box::new(Empty()),
     ];
     for input in graph.0 {
-        result[input.0.variable as usize] = Box::new(input.clone());
+        result[input.0.variable as usize - 1] = Box::new(input.clone());
     }
     for gate in graph.3 {
-        result[gate.0.variable as usize] = Box::new(gate.clone());
+        result[gate.0.variable as usize - 1] = Box::new(gate.clone());
     }
     let mut outputs = vec![];
     for output in graph.2 {
