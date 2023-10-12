@@ -15,6 +15,7 @@ use nom::multi::many1;
 use nom::sequence::delimited;
 use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
+use nom::Finish;
 use nom::IResult;
 
 #[derive(Debug)]
@@ -156,8 +157,7 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
 
 pub fn aag(
     input: &[u8],
-) -> IResult<
-    &[u8],
+) -> Result<
     (
         Vec<I>,
         Vec<L>,
@@ -166,8 +166,9 @@ pub fn aag(
         Vec<Symbol>,
         Option<Vec<String>>,
     ),
+    nom::error::Error<&[u8]>,
 > {
-    all_consuming(flat_map(header, |h| {
+    Ok(all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
             count(parse_latch, h.latches.try_into().unwrap()),
@@ -177,4 +178,6 @@ pub fn aag(
             opt(preceded(tag(b"c\n"), many1(parse_comment))),
         ))
     }))(input)
+    .finish()?
+    .1)
 }
