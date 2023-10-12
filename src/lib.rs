@@ -63,7 +63,6 @@ pub struct Input(pub Literal);
 
 impl Eval for Input {
     fn eval(&self, _graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        println!("eval input {}", self.0.variable);
         inputs[self.0.variable as usize - 1] ^ self.0.negate
     }
 }
@@ -79,10 +78,6 @@ pub struct Gate(pub Literal, pub Literal, pub Literal);
 
 impl Eval for Gate {
     fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        println!(
-            "eval gate {} from {} {}",
-            self.0.variable, self.1.variable, self.2.variable
-        );
         graph[self.1.variable as usize - 1].eval(graph, inputs)
             & graph[self.2.variable as usize - 1].eval(graph, inputs)
             ^ self.0.negate
@@ -172,7 +167,7 @@ fn parse_comment(input: &[u8]) -> IResult<&[u8], String> {
     )(input)
 }
 
-pub fn aag(input: &[u8]) -> IResult<&[u8], Vec<Box<dyn Eval>>> {
+pub fn aag(input: &[u8]) -> IResult<&[u8], (Vec<Box<dyn Eval>>, Vec<u64>)> {
     let graph = all_consuming(flat_map(header, |h| {
         tuple((
             count(parse_input, h.inputs.try_into().unwrap()),
@@ -217,6 +212,9 @@ pub fn aag(input: &[u8]) -> IResult<&[u8], Vec<Box<dyn Eval>>> {
     for gate in graph.3 {
         result[gate.0.variable as usize] = Box::new(gate.clone());
     }
-    println!("done");
-    Ok((&[], result))
+    let mut outputs = vec![];
+    for output in graph.2 {
+        outputs.push(output.0.variable);
+    }
+    Ok((&[], (result, outputs)))
 }
