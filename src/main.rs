@@ -20,7 +20,7 @@ fn main() {
                 println!(
                     "output {} is {}",
                     *thing,
-                    &graph.0[*thing as usize - 1].eval(&graph.0, &[x, y])
+                    &graph.0[*thing as usize].eval(&graph.0, &[false, x, y])
                 );
             }
         }

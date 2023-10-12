@@ -63,7 +63,7 @@ pub struct Input(pub Literal);
 
 impl Eval for Input {
     fn eval(&self, _graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        inputs[self.0.variable as usize - 1] ^ self.0.negate
+        inputs[self.0.variable as usize] ^ self.0.negate
     }
 }
 
@@ -78,8 +78,8 @@ pub struct Gate(pub Literal, pub Literal, pub Literal);
 
 impl Eval for Gate {
     fn eval(&self, graph: &[Box<dyn Eval>], inputs: &[bool]) -> bool {
-        graph[self.1.variable as usize - 1].eval(graph, inputs)
-            & graph[self.2.variable as usize - 1].eval(graph, inputs)
+        graph[self.1.variable as usize].eval(graph, inputs)
+            & graph[self.2.variable as usize].eval(graph, inputs)
             ^ self.0.negate
     }
 }
@@ -207,10 +207,10 @@ pub fn aag(input: &[u8]) -> IResult<&[u8], (Vec<Box<dyn Eval>>, Vec<u64>)> {
         Box::new(Empty()),
     ];
     for input in graph.0 {
-        result[input.0.variable as usize - 1] = Box::new(input.clone());
+        result[input.0.variable as usize] = Box::new(input.clone());
     }
     for gate in graph.3 {
-        result[gate.0.variable as usize - 1] = Box::new(gate.clone());
+        result[gate.0.variable as usize] = Box::new(gate.clone());
     }
     let mut outputs = vec![];
     for output in graph.2 {
