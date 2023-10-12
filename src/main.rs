@@ -27,7 +27,7 @@ struct Negate {
 
 impl Debug for Negate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("!({:?})", self.rhs))
+        f.write_fmt(format_args!("!{:?}", self.rhs))
     }
 }
 
