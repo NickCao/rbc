@@ -33,6 +33,16 @@ enum Node {
     A(And),
 }
 
+impl Node {
+    fn eval(&self, inputs: &HashMap<String, usize>) -> usize {
+        match self {
+            Node::I(Input { symbol }) => *inputs.get(symbol).unwrap(),
+            Node::N(Negate { rhs }) => rhs.eval(inputs) ^ 1,
+            Node::A(And { rhs0, rhs1 }) => rhs0.eval(inputs) & rhs1.eval(inputs),
+        }
+    }
+}
+
 fn main() {
     let _args = Args::parse();
 
@@ -79,5 +89,18 @@ fn main() {
         }
     }
 
-    dbg!(state);
+    for (x, y) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
+        print!("{}{} ", x, y);
+        for output in &graph.1 {
+            let value = state
+                .get(&output.variable)
+                .unwrap()
+                .eval(&HashMap::from([("x".to_string(), x), ("y".to_string(), y)]))
+                ^ output.negate;
+            print!("{}", value);
+        }
+        println!();
+    }
+
+    // dbg!(state);
 }
