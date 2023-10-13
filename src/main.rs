@@ -9,7 +9,10 @@ use std::{
 /// RBC: System for Combinational Logic Synthesis
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-struct Args {}
+struct Args {
+    #[arg(long, short)]
+    command: usize,
+}
 
 struct Input {
     index: usize,
@@ -82,7 +85,7 @@ impl Node {
 }
 
 fn main() {
-    let _args = Args::parse();
+    let args = Args::parse();
 
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
@@ -134,6 +137,22 @@ fn main() {
 
     dbg!(&outputs);
 
+    match args.command {
+        1 => {}
+        2 => {}
+        3 => {}
+        4 => {}
+        5 => {}
+        6 => {}
+        7 => {}
+        8 => {}
+        9 => {}
+        10 => {}
+        11 => {}
+        12 => {}
+        _ => unimplemented!(),
+    }
+
     for output in &outputs {
         for i in 0..2_usize.pow(graph.0.len() as u32) {
             let mut inputs = vec![];
@@ -141,7 +160,9 @@ fn main() {
                 inputs.push((i >> j) & 1);
             }
             let value = output.eval(&inputs);
-            print!("{}", value)
+            if value == 1 {
+                print!("M{} ", i)
+            }
         }
         println!();
     }
