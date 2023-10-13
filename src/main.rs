@@ -135,17 +135,30 @@ fn main() {
         });
     }
 
+    let mut truth = vec![];
+    for output in &outputs {
+        let mut tmp = vec![];
+        for i in 0..2_usize.pow(graph.0.len() as u32) {
+            let mut inputs = vec![];
+            for j in 0..graph.0.len() {
+                inputs.push((i >> j) & 1);
+            }
+            let value = output.eval(&inputs);
+            tmp.push(value);
+        }
+        truth.push(tmp);
+    }
+
     match args.command {
         1 => {
-            for (k, output) in outputs.iter().enumerate() {
+            for (k, output) in truth.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
-                for i in 0..2_usize.pow(graph.0.len() as u32) {
+                for (i, value) in output.iter().enumerate() {
                     let mut inputs = vec![];
                     for j in 0..graph.0.len() {
                         inputs.push((i >> j) & 1);
                     }
-                    let value = output.eval(&inputs);
-                    if value == 1 {
+                    if *value == 1 {
                         for (p, v) in inputs.iter().enumerate() {
                             if *v == 1 {
                                 print!("{} ", graph.0[p].symbol.clone().unwrap());
