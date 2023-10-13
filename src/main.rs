@@ -135,8 +135,6 @@ fn main() {
         });
     }
 
-    dbg!(&outputs);
-
     match args.command {
         1 => {
             for (k, output) in outputs.iter().enumerate() {
