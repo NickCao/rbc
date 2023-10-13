@@ -25,6 +25,16 @@ struct Negate {
     rhs: Rc<Node>,
 }
 
+struct Identity {
+    rhs: Rc<Node>,
+}
+
+impl Debug for Identity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{:?}", self.rhs))
+    }
+}
+
 impl Debug for Negate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("!{:?}", self.rhs))
@@ -46,6 +56,7 @@ enum Node {
     I(Input),
     N(Negate),
     A(And),
+    D(Identity),
 }
 
 impl Debug for Node {
@@ -54,6 +65,7 @@ impl Debug for Node {
             Node::I(i) => i.fmt(f),
             Node::N(i) => i.fmt(f),
             Node::A(i) => i.fmt(f),
+            Node::D(i) => i.fmt(f),
         }
     }
 }
@@ -64,6 +76,7 @@ impl Node {
             Node::I(Input { symbol }) => *inputs.get(symbol).unwrap(),
             Node::N(Negate { rhs }) => rhs.eval(inputs) ^ 1,
             Node::A(And { rhs0, rhs1 }) => rhs0.eval(inputs) & rhs1.eval(inputs),
+            Node::D(Identity { rhs }) => rhs.eval(inputs),
         }
     }
 }
@@ -116,14 +129,21 @@ fn main() {
 
     dbg!(&state);
 
+    let mut outputs: Vec<Rc<Node>> = vec![];
+
+    for output in &graph.1 {
+        let node = state.get(&output.variable).unwrap();
+        outputs.push(if output.negate == 0 {
+            Node::D(Identity { rhs: node.clone() }).into()
+        } else {
+            Node::N(Negate { rhs: node.clone() }).into()
+        });
+    }
+
     for (x, y) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
         print!("{}{} ", x, y);
-        for output in &graph.1 {
-            let value = state
-                .get(&output.variable)
-                .unwrap()
-                .eval(&HashMap::from([("x".to_string(), x), ("y".to_string(), y)]))
-                ^ output.negate;
+        for output in &outputs {
+            let value = output.eval(&HashMap::from([("x".to_string(), x), ("y".to_string(), y)]));
             print!("{}", value);
         }
         println!();
