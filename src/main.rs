@@ -172,7 +172,29 @@ fn main() {
                 println!();
             }
         }
-        2 => {}
+        2 => {
+            for (k, output) in truth.iter().enumerate() {
+                print!("{} = ", graph.1[k].symbol.clone().unwrap());
+                for (i, value) in output.iter().enumerate() {
+                    let mut inputs = vec![];
+                    for j in 0..graph.0.len() {
+                        inputs.push((i >> j) & 1);
+                    }
+                    if *value == 0 {
+                        print!("(");
+                        for (p, v) in inputs.iter().enumerate() {
+                            if *v == 0 {
+                                print!("{}'+ ", graph.0[p].symbol.clone().unwrap());
+                            } else {
+                                print!("{} + ", graph.0[p].symbol.clone().unwrap());
+                            };
+                        }
+                        print!(")");
+                    }
+                }
+                println!();
+            }
+        }
         3 => {}
         4 => {}
         5 => {}
