@@ -12,12 +12,12 @@ use std::{
 struct Args {}
 
 struct Input {
-    symbol: String,
+    index: usize,
 }
 
 impl Debug for Input {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{}", self.symbol))
+        f.write_fmt(format_args!("i[{}]", self.index))
     }
 }
 
@@ -71,9 +71,9 @@ impl Debug for Node {
 }
 
 impl Node {
-    fn eval(&self, inputs: &HashMap<String, usize>) -> usize {
+    fn eval(&self, inputs: &[usize]) -> usize {
         match self {
-            Node::I(Input { symbol }) => *inputs.get(symbol).unwrap(),
+            Node::I(Input { index }) => inputs[*index],
             Node::N(Negate { rhs }) => rhs.eval(inputs) ^ 1,
             Node::A(And { rhs0, rhs1 }) => rhs0.eval(inputs) & rhs1.eval(inputs),
             Node::D(Identity { rhs }) => rhs.eval(inputs),
@@ -91,14 +91,8 @@ fn main() {
 
     let mut state = HashMap::<usize, Rc<Node>>::new();
 
-    for input in &graph.0 {
-        state.insert(
-            input.variable,
-            Node::I(Input {
-                symbol: input.symbol.clone().unwrap(),
-            })
-            .into(),
-        );
+    for (i, input) in graph.0.iter().enumerate() {
+        state.insert(input.variable, Node::I(Input { index: i }).into());
     }
 
     let mut rem: VecDeque<rbc::de::A> = graph.2.clone().into();
@@ -127,7 +121,6 @@ fn main() {
         }
     }
 
-
     let mut outputs: Vec<Rc<Node>> = vec![];
 
     for output in &graph.1 {
@@ -144,7 +137,7 @@ fn main() {
     for (x, y) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
         print!("{}{} ", x, y);
         for output in &outputs {
-            let value = output.eval(&HashMap::from([("x".to_string(), x), ("y".to_string(), y)]));
+            let value = output.eval(&[x, y]);
             print!("{}", value);
         }
         println!();
