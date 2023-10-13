@@ -150,7 +150,7 @@ fn main() {
     }
 
     match args.command {
-        1 => {
+        1 | 3 => {
             for (k, output) in truth.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 for (i, value) in output.iter().enumerate() {
@@ -158,7 +158,7 @@ fn main() {
                     for j in 0..graph.0.len() {
                         inputs.push((i >> j) & 1);
                     }
-                    if *value == 1 {
+                    if *value == if args.command == 1 { 1 } else { 0 } {
                         for (p, v) in inputs.iter().enumerate() {
                             if *v == 1 {
                                 print!("{} ", graph.0[p].symbol.clone().unwrap());
@@ -172,7 +172,7 @@ fn main() {
                 println!();
             }
         }
-        2 => {
+        2 | 4 => {
             for (k, output) in truth.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 for (i, value) in output.iter().enumerate() {
@@ -183,7 +183,7 @@ fn main() {
                     if *value == 0 {
                         print!("(");
                         for (p, v) in inputs.iter().enumerate() {
-                            if *v == 0 {
+                            if *v == if args.command == 2 { 0 } else { 1 } {
                                 print!("{}'+ ", graph.0[p].symbol.clone().unwrap());
                             } else {
                                 print!("{} + ", graph.0[p].symbol.clone().unwrap());
@@ -195,8 +195,6 @@ fn main() {
                 println!();
             }
         }
-        3 => {}
-        4 => {}
         5 => {}
         6 => {}
         7 => {}
