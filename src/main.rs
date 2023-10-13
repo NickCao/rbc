@@ -199,8 +199,19 @@ fn main() {
         6 => {}
         7 => {}
         8 => {}
-        9 => {}
-        10 => {}
+        9 | 10 => {
+            for (k, output) in truth.iter().enumerate() {
+                println!(
+                    "{} = {}",
+                    graph.1[k].symbol.clone().unwrap(),
+                    output
+                        .iter()
+                        .filter(|x| **x == if args.command == 9 { 1 } else { 0 })
+                        .collect::<Vec<&usize>>()
+                        .len()
+                );
+            }
+        }
         11 => {}
         12 => {}
         _ => unimplemented!(),
