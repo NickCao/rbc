@@ -134,10 +134,14 @@ fn main() {
 
     dbg!(&outputs);
 
-    for (x, y) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
-        print!("{}{} ", x, y);
+    for i in 0..2_usize.pow(graph.0.len() as u32) {
+        let mut inputs = vec![];
+        for j in 0..graph.0.len() {
+            inputs.push((i >> j) & 1);
+        }
+        print!("{:?} ", inputs);
         for output in &outputs {
-            let value = output.eval(&[x, y]);
+            let value = output.eval(&inputs);
             print!("{}", value);
         }
         println!();
