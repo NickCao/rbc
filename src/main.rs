@@ -152,7 +152,7 @@ fn main() {
                             if *v == 1 {
                                 print!("{} ", graph.0[p].symbol.clone().unwrap());
                             } else {
-                                print!("{}' ", graph.0[p].symbol.clone().unwrap());
+                                print!("{}'", graph.0[p].symbol.clone().unwrap());
                             };
                         }
                         print!("+ ");
