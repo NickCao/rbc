@@ -127,7 +127,6 @@ fn main() {
         }
     }
 
-    dbg!(&state);
 
     let mut outputs: Vec<Rc<Node>> = vec![];
 
@@ -139,6 +138,8 @@ fn main() {
             Node::N(Negate { rhs: node.clone() }).into()
         });
     }
+
+    dbg!(&outputs);
 
     for (x, y) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
         print!("{}{} ", x, y);
