@@ -138,7 +138,29 @@ fn main() {
     dbg!(&outputs);
 
     match args.command {
-        1 => {}
+        1 => {
+            for (k, output) in outputs.iter().enumerate() {
+                print!("{} = ", graph.1[k].symbol.clone().unwrap());
+                for i in 0..2_usize.pow(graph.0.len() as u32) {
+                    let mut inputs = vec![];
+                    for j in 0..graph.0.len() {
+                        inputs.push((i >> j) & 1);
+                    }
+                    let value = output.eval(&inputs);
+                    if value == 1 {
+                        for (p, v) in inputs.iter().enumerate() {
+                            if *v == 1 {
+                                print!("{} ", graph.0[p].symbol.clone().unwrap());
+                            } else {
+                                print!("{}' ", graph.0[p].symbol.clone().unwrap());
+                            };
+                        }
+                        print!("+ ");
+                    }
+                }
+                println!();
+            }
+        }
         2 => {}
         3 => {}
         4 => {}
@@ -151,19 +173,5 @@ fn main() {
         11 => {}
         12 => {}
         _ => unimplemented!(),
-    }
-
-    for output in &outputs {
-        for i in 0..2_usize.pow(graph.0.len() as u32) {
-            let mut inputs = vec![];
-            for j in 0..graph.0.len() {
-                inputs.push((i >> j) & 1);
-            }
-            let value = output.eval(&inputs);
-            if value == 1 {
-                print!("M{} ", i)
-            }
-        }
-        println!();
     }
 }
