@@ -84,15 +84,22 @@ impl Node {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum Tristate {
+    Zero,
+    One,
+    X,
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Minterm {
-    values: Vec<bool>,
+    values: Vec<Tristate>,
     symbol: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Maxterm {
-    values: Vec<bool>,
+    values: Vec<Tristate>,
     symbol: Vec<String>,
 }
 
@@ -102,12 +109,10 @@ impl Display for Minterm {
             .symbol
             .iter()
             .zip(self.values.iter())
-            .map(|(s, v)| {
-                if *v {
-                    format!("{} ", s)
-                } else {
-                    format!("{}'", s)
-                }
+            .map(|(s, v)| match v {
+                Tristate::One => format!("{} ", s),
+                Tristate::Zero => format!("{}'", s),
+                Tristate::X => format!("- "),
             })
             .collect::<Vec<String>>()
             .join("");
@@ -121,12 +126,10 @@ impl Display for Maxterm {
             .symbol
             .iter()
             .zip(self.values.iter())
-            .map(|(s, v)| {
-                if *v {
-                    format!("{}'", s)
-                } else {
-                    format!("{} ", s)
-                }
+            .map(|(s, v)| match v {
+                Tristate::One => format!("{}'", s),
+                Tristate::Zero => format!("{} ", s),
+                Tristate::X => format!("- "),
             })
             .collect::<Vec<String>>()
             .join(" + ");
@@ -198,12 +201,26 @@ fn main() {
             let value = output.eval(&inputs);
             if value == 1 {
                 minterms.push(Minterm {
-                    values: inputs.iter().map(|x| *x != 0).collect(),
+                    values: inputs
+                        .iter()
+                        .map(|x| match *x {
+                            0 => Tristate::Zero,
+                            1 => Tristate::One,
+                            _ => unreachable!(),
+                        })
+                        .collect(),
                     symbol: graph.0.iter().map(|x| x.symbol.clone().unwrap()).collect(),
                 });
             } else {
                 maxterms.push(Maxterm {
-                    values: inputs.iter().map(|x| *x != 0).collect(),
+                    values: inputs
+                        .iter()
+                        .map(|x| match *x {
+                            0 => Tristate::Zero,
+                            1 => Tristate::One,
+                            _ => unreachable!(),
+                        })
+                        .collect(),
                     symbol: graph.0.iter().map(|x| x.symbol.clone().unwrap()).collect(),
                 })
             }
