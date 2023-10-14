@@ -90,6 +90,12 @@ struct Minterm {
     symbol: Vec<String>,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct Maxterm {
+    values: Vec<bool>,
+    symbol: Vec<String>,
+}
+
 impl Display for Minterm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let minterm = self
@@ -106,6 +112,25 @@ impl Display for Minterm {
             .collect::<Vec<String>>()
             .join("");
         write!(f, "{}", minterm)
+    }
+}
+
+impl Display for Maxterm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let maxterm = self
+            .symbol
+            .iter()
+            .zip(self.values.iter())
+            .map(|(s, v)| {
+                if *v {
+                    format!("{}'", s)
+                } else {
+                    format!("{} ", s)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("+");
+        write!(f, "({})", maxterm)
     }
 }
 
@@ -160,34 +185,45 @@ fn main() {
         });
     }
 
-    let mut truth = vec![];
+    let mut minterm_table = vec![];
+    let mut maxterm_table = vec![];
     for output in &outputs {
         let mut minterms = vec![];
+        let mut maxterms = vec![];
         for i in 0..2_usize.pow(graph.0.len() as u32) {
             let mut inputs = vec![];
             for j in 0..graph.0.len() {
                 inputs.push((i >> j) & 1);
             }
             let value = output.eval(&inputs);
-            let minterm = Minterm {
-                values: inputs.iter().map(|x| *x != 0).collect(),
-                symbol: graph.0.iter().map(|x| x.symbol.clone().unwrap()).collect(),
-            };
             if value == 1 {
-                minterms.push(minterm);
+                minterms.push(Minterm {
+                    values: inputs.iter().map(|x| *x != 0).collect(),
+                    symbol: graph.0.iter().map(|x| x.symbol.clone().unwrap()).collect(),
+                });
+            } else {
+                maxterms.push(Maxterm {
+                    values: inputs.iter().map(|x| *x != 0).collect(),
+                    symbol: graph.0.iter().map(|x| x.symbol.clone().unwrap()).collect(),
+                })
             }
         }
-        truth.push(minterms);
+        minterm_table.push(minterms);
+        maxterm_table.push(maxterms);
     }
 
     match args.command {
         1 | 3 => {
-            for (k, output) in truth.iter().enumerate() {
+            for (k, output) in minterm_table.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
-                for (i, value) in output.iter().enumerate() {
-                    print!("{} ", value);
-                    print!("+ ");
-                }
+                print!(
+                    "{}",
+                    output
+                        .iter()
+                        .map(Minterm::to_string)
+                        .collect::<Vec<String>>()
+                        .join(" + ")
+                );
                 println!();
             }
         }
