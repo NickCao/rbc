@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::{
     collections::{HashMap, VecDeque},
-    fmt::Debug,
+    fmt::{Debug, Display},
     io::Read,
     rc::Rc,
 };
@@ -84,6 +84,31 @@ impl Node {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct Minterm {
+    values: Vec<bool>,
+    symbol: Vec<String>,
+}
+
+impl Display for Minterm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let minterm = self
+            .symbol
+            .iter()
+            .zip(self.values.iter())
+            .map(|(s, v)| {
+                if *v {
+                    format!("{} ", s)
+                } else {
+                    format!("{}'", s)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("");
+        write!(f, "{}", minterm)
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -137,16 +162,22 @@ fn main() {
 
     let mut truth = vec![];
     for output in &outputs {
-        let mut tmp = vec![];
+        let mut minterms = vec![];
         for i in 0..2_usize.pow(graph.0.len() as u32) {
             let mut inputs = vec![];
             for j in 0..graph.0.len() {
                 inputs.push((i >> j) & 1);
             }
             let value = output.eval(&inputs);
-            tmp.push(value);
+            let minterm = Minterm {
+                values: inputs.iter().map(|x| *x != 0).collect(),
+                symbol: graph.0.iter().map(|x| x.symbol.clone().unwrap()).collect(),
+            };
+            if value == 1 {
+                minterms.push(minterm);
+            }
         }
-        truth.push(tmp);
+        truth.push(minterms);
     }
 
     match args.command {
@@ -154,52 +185,19 @@ fn main() {
             for (k, output) in truth.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 for (i, value) in output.iter().enumerate() {
-                    let mut inputs = vec![];
-                    for j in 0..graph.0.len() {
-                        inputs.push((i >> j) & 1);
-                    }
-                    if *value == if args.command == 1 { 1 } else { 0 } {
-                        for (p, v) in inputs.iter().enumerate() {
-                            if *v == 1 {
-                                print!("{} ", graph.0[p].symbol.clone().unwrap());
-                            } else {
-                                print!("{}'", graph.0[p].symbol.clone().unwrap());
-                            };
-                        }
-                        print!("+ ");
-                    }
+                    print!("{} ", value);
+                    print!("+ ");
                 }
                 println!();
             }
         }
-        2 | 4 => {
-            for (k, output) in truth.iter().enumerate() {
-                print!("{} = ", graph.1[k].symbol.clone().unwrap());
-                for (i, value) in output.iter().enumerate() {
-                    let mut inputs = vec![];
-                    for j in 0..graph.0.len() {
-                        inputs.push((i >> j) & 1);
-                    }
-                    if *value == 0 {
-                        print!("(");
-                        for (p, v) in inputs.iter().enumerate() {
-                            if *v == if args.command == 2 { 0 } else { 1 } {
-                                print!("{}'+ ", graph.0[p].symbol.clone().unwrap());
-                            } else {
-                                print!("{} + ", graph.0[p].symbol.clone().unwrap());
-                            };
-                        }
-                        print!(")");
-                    }
-                }
-                println!();
-            }
-        }
+        2 | 4 => {}
         5 => {}
         6 => {}
         7 => {}
         8 => {}
         9 | 10 => {
+            /*
             for (k, output) in truth.iter().enumerate() {
                 println!(
                     "{} = {}",
@@ -211,6 +209,7 @@ fn main() {
                         .len()
                 );
             }
+            */
         }
         11 => {}
         12 => {}
