@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+boolean_expression = "0.4.4"
 clap = { version = "4.4.6", features = ["derive"] }
 itertools = "0.11.0"
 nom = "7.1.3"
