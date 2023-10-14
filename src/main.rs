@@ -129,7 +129,7 @@ impl Display for Maxterm {
                 }
             })
             .collect::<Vec<String>>()
-            .join("+");
+            .join(" + ");
         write!(f, "({})", maxterm)
     }
 }
@@ -213,7 +213,7 @@ fn main() {
     }
 
     match args.command {
-        1 | 3 => {
+        1 => {
             for (k, output) in minterm_table.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 print!(
@@ -223,6 +223,20 @@ fn main() {
                         .map(Minterm::to_string)
                         .collect::<Vec<String>>()
                         .join(" + ")
+                );
+                println!();
+            }
+        }
+        3 => {
+            for (k, output) in maxterm_table.iter().enumerate() {
+                print!("{} = ", graph.1[k].symbol.clone().unwrap());
+                print!(
+                    "{}",
+                    output
+                        .iter()
+                        .map(Maxterm::to_string)
+                        .collect::<Vec<String>>()
+                        .join("")
                 );
                 println!();
             }
