@@ -1,4 +1,3 @@
-#![feature(slice_group_by)]
 use clap::Parser;
 use std::{
     collections::{HashMap, VecDeque},
@@ -280,10 +279,13 @@ fn main() {
             // Return a minimized number of literals representation in SOP
             // Step 1: finding prime implicants
             for (k, minterms) in minterm_table.iter().enumerate() {
+                let num_groups = graph.0.len() + 1;
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
-                dbg!(minterms
-                    .group_by(|a, b| a.ones() == b.ones())
-                    .collect::<Vec<&[Minterm]>>());
+                let mut groups = vec![vec![]; num_groups];
+                for minterm in minterms {
+                    groups[minterm.ones()].push(minterm);
+                }
+                dbg!(groups);
             }
         }
         6 => {}
