@@ -1,5 +1,4 @@
 use clap::Parser;
-use itertools::{iproduct, Itertools};
 use std::{
     collections::{HashMap, VecDeque},
     fmt::{Debug, Display},
@@ -142,6 +141,19 @@ impl Minterm {
                 .collect(),
             symbol: self.symbol.clone(),
         })
+    }
+    fn contains(&self, other: &Minterm) -> bool {
+        self.values
+            .iter()
+            .zip(other.values.iter())
+            .filter(|(l, r)| match (**l, **r) {
+                (Tristate::X, _) => false,
+                (Tristate::One, Tristate::One) => false,
+                (Tristate::Zero, Tristate::Zero) => false,
+                (_, _) => true,
+            })
+            .count()
+            == 0
     }
 }
 
@@ -311,8 +323,9 @@ fn main() {
         3 => {}
         4 => {}
         5 => {}
+        6 => {}
         7 => {
-            // Return a minimized number of literals representation in SOP
+            // Report the number of Prime Implicants
             for (k, minterms) in minterm_table.iter().enumerate() {
                 // Step 1: finding prime implicants
                 // Merging minterms until we cannot
@@ -340,8 +353,46 @@ fn main() {
                 println!("{}", primes.len());
             }
         }
-        6 => {}
-        8 => {}
+        8 => {
+            // Return a minimized number of literals representation in SOP
+            for (k, minterms) in minterm_table.iter().enumerate() {
+                print!("{} = ", graph.1[k].symbol.clone().unwrap());
+                let mut terms = minterms.clone();
+                let mut primes: Vec<Minterm> = Vec::new();
+                while !terms.is_empty() {
+                    let old = std::mem::take(&mut terms);
+                    let mut combined_terms = std::collections::BTreeSet::new();
+                    for (i, term) in old.iter().enumerate() {
+                        for (other_i, other) in old[i..].iter().enumerate() {
+                            if let Some(new_term) = term.combine(other) {
+                                terms.push(new_term);
+                                combined_terms.insert(other_i + i);
+                                combined_terms.insert(i);
+                            }
+                        }
+                        if !combined_terms.contains(&i) {
+                            primes.push(term.clone());
+                        }
+                    }
+                    terms.sort();
+                    terms.dedup();
+                }
+                let mut essentials = vec![];
+                for minterm in minterms {
+                    let mut checks = vec![];
+                    for implicant in &primes {
+                        if implicant.contains(minterm) {
+                            checks.push(implicant);
+                        }
+                    }
+                    if checks.len() == 1 {
+                        // only one check, essential
+                        essentials.append(&mut checks);
+                    }
+                }
+                println!("{}", essentials.len());
+            }
+        }
         9 | 10 => {
             /*
             for (k, output) in truth.iter().enumerate() {
