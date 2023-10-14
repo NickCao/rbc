@@ -158,9 +158,9 @@ impl Display for Minterm {
             .iter()
             .zip(self.values.iter())
             .map(|(s, v)| match v {
-                Tristate::One => format!("{} ", s),
-                Tristate::Zero => format!("{}'", s),
-                Tristate::X => format!("- "),
+                Tristate::One => format!("1"),
+                Tristate::Zero => format!("0"),
+                Tristate::X => format!("-"),
             })
             .collect::<Vec<String>>()
             .join("");
@@ -310,14 +310,15 @@ fn main() {
         }
         3 => {}
         4 => {}
-        5 => {
+        5 => {}
+        7 => {
             // Return a minimized number of literals representation in SOP
             for (k, minterms) in minterm_table.iter().enumerate() {
                 // Step 1: finding prime implicants
                 // Merging minterms until we cannot
-                println!("{} = ", graph.1[k].symbol.clone().unwrap());
+                print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 let mut terms = minterms.clone();
-                let mut essentials: Vec<Minterm> = Vec::new();
+                let mut primes: Vec<Minterm> = Vec::new();
                 while !terms.is_empty() {
                     let old = std::mem::take(&mut terms);
                     let mut combined_terms = std::collections::BTreeSet::new();
@@ -330,20 +331,16 @@ fn main() {
                             }
                         }
                         if !combined_terms.contains(&i) {
-                            essentials.push(term.clone());
+                            primes.push(term.clone());
                         }
                     }
                     terms.sort();
                     terms.dedup();
                 }
-                for es in essentials {
-                    println!("{}", es);
-                }
-                println!();
+                println!("{}", primes.len());
             }
         }
         6 => {}
-        7 => {}
         8 => {}
         9 | 10 => {
             /*
