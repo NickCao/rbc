@@ -1,5 +1,6 @@
+use std::collections::HashMap;
 use std::rc::Rc;
-use std::vec;
+use std::{default, vec};
 
 #[derive(Debug, Clone)]
 pub enum BDD {
@@ -9,7 +10,6 @@ pub enum BDD {
 
 #[derive(Debug, Clone)]
 pub struct Leaf {
-    pub i: usize,
     pub label: bool,
 }
 
@@ -21,6 +21,10 @@ pub struct Node {
 
 impl BDD {
     pub fn new(n: usize, table: &[bool]) -> Rc<Box<Self>> {
+        let (t, f) = (
+            Rc::new(Box::new(BDD::L(Leaf { label: true }))),
+            Rc::new(Box::new(BDD::L(Leaf { label: false }))),
+        );
         let mut prev = vec![];
         let mut next = vec![];
         for layer in 0..(n + 1) {
@@ -28,7 +32,7 @@ impl BDD {
             next.clear();
             for i in 0..2_usize.pow((n - layer).try_into().unwrap()) {
                 if layer == 0 {
-                    next.push(Rc::new(Box::new(BDD::L(Leaf { label: table[i], i }))))
+                    next.push(if table[i] { t.clone() } else { f.clone() })
                 } else {
                     next.push(Rc::new(Box::new(BDD::N(Node {
                         f: prev[i * 2].clone(),
@@ -41,6 +45,7 @@ impl BDD {
     }
     /*
     fn reduce(&self) -> Rc<Box<BDD>> {
+        let leaves = HashMap::<bool, Rc<Box<BDD>>>::default();
         // if there are more than two leaves then perform reduction 1
         // while possible do
         // begin
