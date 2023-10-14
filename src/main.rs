@@ -1,3 +1,4 @@
+#![feature(slice_group_by)]
 use clap::Parser;
 use std::{
     collections::{HashMap, VecDeque},
@@ -95,6 +96,19 @@ enum Tristate {
 struct Minterm {
     values: Vec<Tristate>,
     symbol: Vec<String>,
+}
+
+impl Minterm {
+    fn ones(&self) -> usize {
+        self.values
+            .iter()
+            .filter(|x| match x {
+                Tristate::One => true,
+                Tristate::Zero => false,
+                Tristate::X => true,
+            })
+            .count()
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -262,7 +276,16 @@ fn main() {
         }
         3 => {}
         4 => {}
-        5 => {}
+        5 => {
+            // Return a minimized number of literals representation in SOP
+            // Step 1: finding prime implicants
+            for (k, minterms) in minterm_table.iter().enumerate() {
+                print!("{} = ", graph.1[k].symbol.clone().unwrap());
+                dbg!(minterms
+                    .group_by(|a, b| a.ones() == b.ones())
+                    .collect::<Vec<&[Minterm]>>());
+            }
+        }
         6 => {}
         7 => {}
         8 => {}
