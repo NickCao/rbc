@@ -1,4 +1,5 @@
 use clap::Parser;
+use itertools::{iproduct, Itertools};
 use std::{
     collections::{HashMap, VecDeque},
     fmt::{Debug, Display},
@@ -84,14 +85,25 @@ impl Node {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 enum Tristate {
     Zero,
     One,
     X,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+impl std::ops::BitOr for Tristate {
+    type Output = Self;
+    fn bitor(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Tristate::Zero, Tristate::Zero) => Tristate::Zero,
+            (Tristate::One, Tristate::One) => Tristate::One,
+            (_, _) => Tristate::X,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
 struct Minterm {
     values: Vec<Tristate>,
     symbol: Vec<String>,
@@ -107,6 +119,29 @@ impl Minterm {
                 Tristate::X => true,
             })
             .count()
+    }
+    fn combine(&self, other: &Minterm) -> Option<Minterm> {
+        assert!(self.symbol == other.symbol);
+        assert!(self.values.len() == other.values.len());
+        if self
+            .values
+            .iter()
+            .zip(other.values.iter())
+            .filter(|(l, r)| l != r)
+            .count()
+            != 1
+        {
+            return None;
+        };
+        Some(Minterm {
+            values: self
+                .values
+                .iter()
+                .zip(other.values.iter())
+                .map(|(l, r)| *l | *r)
+                .collect(),
+            symbol: self.symbol.clone(),
+        })
     }
 }
 
@@ -277,15 +312,34 @@ fn main() {
         4 => {}
         5 => {
             // Return a minimized number of literals representation in SOP
-            // Step 1: finding prime implicants
             for (k, minterms) in minterm_table.iter().enumerate() {
-                let num_groups = graph.0.len() + 1;
-                print!("{} = ", graph.1[k].symbol.clone().unwrap());
-                let mut groups = vec![vec![]; num_groups];
-                for minterm in minterms {
-                    groups[minterm.ones()].push(minterm);
+                // Step 1: finding prime implicants
+                // Merging minterms until we cannot
+                println!("{} = ", graph.1[k].symbol.clone().unwrap());
+                let mut terms = minterms.clone();
+                let mut essentials: Vec<Minterm> = Vec::new();
+                while !terms.is_empty() {
+                    let old = std::mem::take(&mut terms);
+                    let mut combined_terms = std::collections::BTreeSet::new();
+                    for (i, term) in old.iter().enumerate() {
+                        for (other_i, other) in old[i..].iter().enumerate() {
+                            if let Some(new_term) = term.combine(other) {
+                                terms.push(new_term);
+                                combined_terms.insert(other_i + i);
+                                combined_terms.insert(i);
+                            }
+                        }
+                        if !combined_terms.contains(&i) {
+                            essentials.push(term.clone());
+                        }
+                    }
+                    terms.sort();
+                    terms.dedup();
                 }
-                dbg!(groups);
+                for es in essentials {
+                    println!("{}", es);
+                }
+                println!();
             }
         }
         6 => {}
