@@ -169,7 +169,7 @@ impl Display for Minterm {
             .symbol
             .iter()
             .zip(self.values.iter())
-            .map(|(s, v)| match v {
+            .map(|(_s, v)| match v {
                 Tristate::One => format!("1"),
                 Tristate::Zero => format!("0"),
                 Tristate::X => format!("-"),
@@ -213,7 +213,7 @@ fn main() {
 
     let mut rem: VecDeque<rbc::de::A> = graph.2.clone().into();
 
-    while rem.len() > 0 {
+    while !rem.is_empty() {
         let cur = rem.pop_back().unwrap();
         if let (Some(rhs0), Some(rhs1)) = (state.get(&cur.rhs0), state.get(&cur.rhs1)) {
             state.insert(
