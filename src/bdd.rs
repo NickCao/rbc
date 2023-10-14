@@ -1,5 +1,5 @@
-use std::vec;
 use std::rc::Rc;
+use std::vec;
 
 #[derive(Debug, Clone)]
 pub enum BDD {
@@ -9,6 +9,7 @@ pub enum BDD {
 
 #[derive(Debug, Clone)]
 pub struct Leaf {
+    pub i: usize,
     pub label: bool,
 }
 
@@ -27,7 +28,7 @@ impl BDD {
             next.clear();
             for i in 0..2_usize.pow((n - layer).try_into().unwrap()) {
                 if layer == 0 {
-                    next.push(Rc::new(Box::new(BDD::L(Leaf { label: table[i] }))))
+                    next.push(Rc::new(Box::new(BDD::L(Leaf { label: table[i], i }))))
                 } else {
                     next.push(Rc::new(Box::new(BDD::N(Node {
                         f: prev[i * 2].clone(),
@@ -36,8 +37,19 @@ impl BDD {
                 }
             }
         }
-        prev[0].clone()
+        next[0].clone()
     }
+    /*
+    fn reduce(&self) -> Rc<Box<BDD>> {
+        // if there are more than two leaves then perform reduction 1
+        // while possible do
+        // begin
+        //   if applicable then perform reduction 2
+        //   if applicable then perform reduction 3
+        // end
+        // return
+    }
+    */
 }
 
 #[cfg(test)]
@@ -46,13 +58,7 @@ mod test {
 
     #[test]
     fn new() {
-        let bdd = BDD::new(
-            4,
-            &[
-                false, false, false, true, false, true, true, true, false, true, true, true, true,
-                true, true, false,
-            ],
-        );
+        let bdd = BDD::new(3, &[false, false, false, true, true, true, true, true]);
         dbg!(bdd);
     }
 }
