@@ -43,18 +43,22 @@ impl BDD {
         }
         next[0].clone()
     }
-    /*
-    fn reduce(&self) -> Rc<Box<BDD>> {
-        let leaves = HashMap::<bool, Rc<Box<BDD>>>::default();
-        // if there are more than two leaves then perform reduction 1
-        // while possible do
-        // begin
-        //   if applicable then perform reduction 2
-        //   if applicable then perform reduction 3
-        // end
-        // return
+    fn reduce(bdd: &Rc<Box<BDD>>) -> Rc<Box<BDD>> {
+        match bdd.as_ref().as_ref() {
+            BDD::N(Node { f, t }) => {
+                if Rc::ptr_eq(f, t) {
+                    println!("reduced");
+                    f.clone()
+                } else {
+                    Rc::new(Box::new(BDD::N(Node {
+                        f: BDD::reduce(f),
+                        t: BDD::reduce(t),
+                    })))
+                }
+            }
+            _ => bdd.clone(),
+        }
     }
-    */
 }
 
 #[cfg(test)]
@@ -64,6 +68,7 @@ mod test {
     #[test]
     fn new() {
         let bdd = BDD::new(3, &[false, false, false, true, true, true, true, true]);
-        dbg!(bdd);
+        dbg!(&bdd);
+        dbg!(BDD::reduce(&BDD::reduce(&bdd)));
     }
 }
