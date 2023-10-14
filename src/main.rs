@@ -214,6 +214,7 @@ fn main() {
 
     match args.command {
         1 => {
+            // Return the design as a canonical SOP
             for (k, output) in minterm_table.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 print!(
@@ -227,7 +228,8 @@ fn main() {
                 println!();
             }
         }
-        3 => {
+        2 => {
+            // Return the design as a canonical POS
             for (k, output) in maxterm_table.iter().enumerate() {
                 print!("{} = ", graph.1[k].symbol.clone().unwrap());
                 print!(
@@ -241,7 +243,8 @@ fn main() {
                 println!();
             }
         }
-        2 | 4 => {}
+        3 => {}
+        4 => {}
         5 => {}
         6 => {}
         7 => {}
