@@ -1,3 +1,5 @@
+use std::{fmt::Display, io::Write};
+
 #[derive(Debug, Clone)]
 pub struct Sym(pub usize);
 
@@ -12,6 +14,16 @@ pub enum AIG {
     A(And),
     I(Inv),
     G(Sym),
+}
+
+impl Display for Box<AIG> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self.clone() {
+            AIG::A(And(l, r)) => write!(f, "({} & {})", l, r),
+            AIG::I(Inv(r)) => write!(f, "!{}", r),
+            AIG::G(Sym(i)) => write!(f, "i{}", i),
+        }
+    }
 }
 
 impl From<usize> for Box<AIG> {

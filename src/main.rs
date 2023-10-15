@@ -265,6 +265,7 @@ fn main() {
             }
             12 => {
                 // Command of your choice #2
+                println!("AIG of output {}: {}", i, output);
             }
             _ => unimplemented!(),
         }
