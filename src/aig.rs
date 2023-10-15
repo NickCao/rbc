@@ -1,16 +1,16 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Term(pub usize);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Neg(pub Box<Node>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Id(pub Box<Node>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct And(pub Box<Node>, pub Box<Node>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Node {
     T(Term),
     N(Neg),
