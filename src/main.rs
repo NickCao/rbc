@@ -24,10 +24,10 @@ fn main() {
 
     let graph = rbc::de::aag(&buf).unwrap();
 
-    let mut state = HashMap::<usize, Box<aig::Node>>::new();
+    let mut state = HashMap::<usize, Box<aig::AIG>>::new();
 
     for (i, input) in graph.0.iter().enumerate() {
-        state.insert(input.variable, Box::new(aig::Node::T(aig::Term(i))));
+        state.insert(input.variable, Box::new(aig::AIG::G(aig::Sym(i))));
     }
 
     let mut rem: VecDeque<rbc::de::A> = graph.2.clone().into();
@@ -38,27 +38,27 @@ fn main() {
             let r0 = if cur.rhs0_negate == 0 {
                 rhs0.clone()
             } else {
-                Box::new(aig::Node::N(aig::Neg(rhs0.clone())))
+                !rhs0.clone()
             };
             let r1 = if cur.rhs1_negate == 0 {
                 rhs1.clone()
             } else {
-                Box::new(aig::Node::N(aig::Neg(rhs1.clone())))
+                !rhs1.clone()
             };
-            state.insert(cur.lhs, Box::new(aig::Node::A(aig::And(r0, r1))));
+            state.insert(cur.lhs, r0 & r1);
         } else {
             rem.push_front(cur);
         }
     }
 
-    let mut outputs: Vec<Box<aig::Node>> = vec![];
+    let mut outputs: Vec<Box<aig::AIG>> = vec![];
 
     for output in &graph.1 {
         let node = state.get(&output.variable).unwrap();
         outputs.push(if output.negate == 0 {
             node.clone()
         } else {
-            Box::new(aig::Node::N(aig::Neg(node.clone())))
+            !node.clone()
         });
     }
 
