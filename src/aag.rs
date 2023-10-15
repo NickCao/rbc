@@ -85,17 +85,7 @@ pub fn parse(input: &[u8]) -> Result<(usize, Vec<Box<aig::AIG>>), nom::error::Er
     while !queue.is_empty() {
         let cur = queue.pop_back().unwrap();
         if let (Some(rhs0), Some(rhs1)) = (graph.get(&cur.rhs0.var), graph.get(&cur.rhs1.var)) {
-            let r0 = if !cur.rhs0.neg {
-                rhs0.clone()
-            } else {
-                !rhs0.clone()
-            };
-            let r1 = if !cur.rhs1.neg {
-                rhs1.clone()
-            } else {
-                !rhs1.clone()
-            };
-            graph.insert(cur.lhs.var, r0 & r1);
+            graph.insert(cur.lhs.var, rhs0.neg(cur.rhs0.neg) & rhs1.neg(cur.rhs1.neg));
         } else {
             queue.push_front(cur);
         }
@@ -104,14 +94,7 @@ pub fn parse(input: &[u8]) -> Result<(usize, Vec<Box<aig::AIG>>), nom::error::Er
     let outputs = ast
         .1
         .iter()
-        .map(|v| {
-            let n = graph.get(&v.var).unwrap();
-            if v.neg {
-                !n.clone()
-            } else {
-                n.clone()
-            }
-        })
+        .map(|v| graph.get(&v.var).unwrap().neg(v.neg))
         .collect();
 
     Ok((ast.0.len(), outputs))

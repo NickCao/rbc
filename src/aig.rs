@@ -35,6 +35,13 @@ impl std::ops::Not for Box<AIG> {
 }
 
 impl AIG {
+    pub fn neg(&self, neg: bool) -> Box<Self> {
+        if neg {
+            Box::new(AIG::I(Inv(Box::new(self.clone()))))
+        } else {
+            Box::new(self.clone())
+        }
+    }
     pub fn eval(&self, syms: &[bool]) -> bool {
         match self {
             AIG::A(And(l, r)) => l.eval(syms) & r.eval(syms),
