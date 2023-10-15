@@ -1,7 +1,7 @@
 use clap::Parser;
 
 use rbc::qmc::{reduce, Imp, ImpMax, Tri};
-use std::{collections::HashSet, fmt::Debug, io::Read, ops::Sub};
+use std::{collections::HashSet, fmt::Debug, ops::Sub};
 
 /// RBC: System for Combinational Logic Synthesis
 #[derive(Parser, Debug)]
@@ -209,7 +209,6 @@ fn main() {
                 );
             }
             8 => {
-                // FIXME
                 // Report the number of Essential Prime Implicants
                 let mut ess = 0;
                 let prime = reduce(&minterms);
@@ -218,7 +217,10 @@ fn main() {
                         ess += 1;
                     }
                 }
-                println!("{}", ess);
+                println!(
+                    "number of Essential Prime Implicants of output {}: {}",
+                    i, ess
+                );
             }
             9 => {
                 // Report the number of ON-Set minterms
