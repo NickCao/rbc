@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Tri {
     /// false
@@ -8,8 +10,36 @@ pub enum Tri {
     X,
 }
 
+impl Display for Tri {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Tri::F => "0",
+                Tri::T => "1",
+                Tri::X => "-",
+            }
+        )
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Imp(Vec<Tri>);
+
+impl Display for Imp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.0
+                .iter()
+                .map(Tri::to_string)
+                .collect::<Vec<_>>()
+                .join("")
+        )
+    }
+}
 
 impl Imp {
     pub fn merge(&self, other: &Self) -> Option<Self> {
