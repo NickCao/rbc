@@ -124,9 +124,9 @@ mod test {
         assert_eq!(m0.merge(&m1), Some(m2.clone()));
         assert_eq!(m0.merge(&m2), None);
         assert_eq!(m2.merge(&m3), Some(m4.clone()));
-        assert_eq!(m2.containes(&m0), true);
-        assert_eq!(m2.containes(&m1), true);
-        assert_eq!(m3.containes(&m2), false);
+        assert!(m2.containes(&m0));
+        assert!(m2.containes(&m1));
+        assert!(!m3.containes(&m2));
     }
 
     #[test]

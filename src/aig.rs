@@ -14,6 +14,12 @@ pub enum AIG {
     G(Sym),
 }
 
+impl From<usize> for Box<AIG> {
+    fn from(value: usize) -> Self {
+        Box::new(AIG::G(Sym(value)))
+    }
+}
+
 impl std::ops::BitAnd for Box<AIG> {
     type Output = Self;
     fn bitand(self, rhs: Self) -> Self::Output {

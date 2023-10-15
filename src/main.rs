@@ -27,7 +27,7 @@ fn main() {
     let mut state = HashMap::<usize, Box<aig::AIG>>::new();
 
     for (i, input) in graph.0.iter().enumerate() {
-        state.insert(input.var, Box::new(aig::AIG::G(aig::Sym(i))));
+        state.insert(input.var, i.into());
     }
 
     let mut rem: VecDeque<rbc::aag::And> = graph.2.clone().into();
@@ -62,7 +62,7 @@ fn main() {
         });
     }
 
-    for (i, output) in outputs.iter().enumerate() {
+    for (_i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
         let mut maxterms = vec![];
 
@@ -110,7 +110,7 @@ fn main() {
                 // Report on the number of saved literals vs. the canonical version
 
                 let mut columns = minterms.clone();
-                let mut rows = reduce(&columns);
+                let rows = reduce(&columns);
 
                 let mut chosen: HashSet<Imp> = HashSet::new();
 
@@ -139,11 +139,7 @@ fn main() {
                         break;
                     }
 
-                    if covered.is_empty() {
-                        fallback = true;
-                    } else {
-                        fallback = false;
-                    }
+                    fallback = covered.is_empty();
                 }
             }
             6 => {
