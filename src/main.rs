@@ -1,12 +1,7 @@
 use clap::Parser;
 
-use rbc::qmc::{reduce, Imp, Tri};
-use std::{
-    collections::{HashSet},
-    fmt::Debug,
-    io::Read,
-    ops::Sub,
-};
+use rbc::qmc::{reduce, Imp, ImpMax, Tri};
+use std::{collections::HashSet, fmt::Debug, io::Read, ops::Sub};
 
 /// RBC: System for Combinational Logic Synthesis
 #[derive(Parser, Debug)]
@@ -26,8 +21,7 @@ fn main() {
 
     for (i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
-        let mut minterms_inv = HashSet::new();
-        let mut maxterms = vec![];
+        let mut maxterms = HashSet::new();
 
         for term in 0..2_usize.pow(inputs as u32) {
             let mut input = vec![];
@@ -44,8 +38,7 @@ fn main() {
             if result {
                 minterms.insert(Imp(imp));
             } else {
-                minterms_inv.insert(Imp(imp));
-                maxterms.push(term);
+                maxterms.insert(Imp(imp));
             }
         }
 
@@ -64,14 +57,26 @@ fn main() {
             }
             2 => {
                 // Return the design as a canonical POS
-                println!("{:?}", maxterms);
+                println!(
+                    "canonical SOP of output {}: {}",
+                    i,
+                    maxterms
+                        .clone()
+                        .into_iter()
+                        .map(ImpMax::from)
+                        .collect::<Vec<_>>()
+                        .iter()
+                        .map(ImpMax::to_string)
+                        .collect::<Vec<_>>()
+                        .join("")
+                );
             }
             3 => {
                 // Return the design INVERSE as a canonical SOP
                 println!(
                     "canonical SOP of output {} INVERSE: {}",
                     i,
-                    minterms_inv
+                    maxterms
                         .iter()
                         .map(Imp::to_string)
                         .collect::<Vec<_>>()

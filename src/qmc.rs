@@ -108,6 +108,39 @@ pub fn reduce(minterms: &HashSet<Imp>) -> HashSet<Imp> {
     essential
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct ImpMax(pub Vec<Tri>);
+
+impl From<Imp> for ImpMax {
+    fn from(value: Imp) -> Self {
+        Self(
+            value
+                .0
+                .iter()
+                .map(|x| match *x {
+                    Tri::F => Tri::T,
+                    Tri::T => Tri::F,
+                    Tri::X => Tri::X,
+                })
+                .collect(),
+        )
+    }
+}
+
+impl Display for ImpMax {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "({})",
+            self.0
+                .iter()
+                .map(Tri::to_string)
+                .collect::<Vec<_>>()
+                .join("+")
+        )
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::HashSet;
