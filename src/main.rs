@@ -9,20 +9,22 @@ struct Args {
     #[arg(long, short)]
     command: usize,
 
-    file: Option<String>,
+    #[arg(long, short)]
+    expression: bool,
+
+    file: String,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let (inputs, outputs) = if let Some(file) = args.file {
-        let buf = std::fs::read(file).unwrap();
+    let buf = std::fs::read(args.file).unwrap();
+
+    let (inputs, outputs) = if !args.expression {
         rbc::aag::parse(&buf).unwrap()
     } else {
-        let mut buf = String::new();
-        std::io::stdin().read_line(&mut buf).unwrap();
         let e: Box<rbc::aig::AIG> = rbc::expr::calculator1::ExprParser::new()
-            .parse(&buf)
+            .parse(&String::from_utf8(buf).unwrap())
             .unwrap()
             .into();
         (e.syms(), vec![e])
