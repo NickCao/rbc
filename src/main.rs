@@ -9,13 +9,14 @@ use std::{collections::HashSet, fmt::Debug, io::Read, ops::Sub};
 struct Args {
     #[arg(long, short)]
     command: usize,
+
+    file: String,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let mut buf = vec![];
-    std::io::stdin().read_to_end(&mut buf).unwrap();
+    let buf = std::fs::read(args.file).unwrap();
 
     let (inputs, outputs) = rbc::aag::parse(&buf).unwrap();
 
