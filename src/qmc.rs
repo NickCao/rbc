@@ -42,6 +42,17 @@ impl Display for Imp {
 }
 
 impl Imp {
+    pub fn containes(&self, other: &Self) -> bool {
+        assert_eq!(self.0.len(), other.0.len());
+        for (l, r) in self.0.iter().zip(other.0.iter()) {
+            match (*l, *r) {
+                (Tri::T, Tri::T) | (Tri::F, Tri::F) => continue,
+                (Tri::X, _) => continue,
+                (_, _) => return false,
+            }
+        }
+        true
+    }
     pub fn merge(&self, other: &Self) -> Option<Self> {
         assert_eq!(self.0.len(), other.0.len());
         let mut merged = false;
@@ -104,7 +115,7 @@ mod test {
     use crate::qmc::{Imp, Tri};
 
     #[test]
-    fn merge() {
+    fn basic() {
         let m0 = Imp(vec![Tri::F, Tri::T, Tri::F, Tri::F]);
         let m1 = Imp(vec![Tri::T, Tri::T, Tri::F, Tri::F]);
         let m2 = Imp(vec![Tri::X, Tri::T, Tri::F, Tri::F]);
@@ -113,6 +124,9 @@ mod test {
         assert_eq!(m0.merge(&m1), Some(m2.clone()));
         assert_eq!(m0.merge(&m2), None);
         assert_eq!(m2.merge(&m3), Some(m4.clone()));
+        assert_eq!(m2.containes(&m0), true);
+        assert_eq!(m2.containes(&m1), true);
+        assert_eq!(m3.containes(&m2), false);
     }
 
     #[test]
