@@ -5,9 +5,10 @@ grammar;
 pub Term: char = <r"[A-Z]"> => <>.chars().nth(0).unwrap();
 
 pub Expr: Box<Expr> = {
-    "(" <l:Expr> "+" <r:Expr> ")" => Box::new(Expr::Or(l, r)),
-    "(" <l:Expr> "*" <r:Expr> ")" => Box::new(Expr::And(l, r)),
-    "(" "!" <e:Expr> ")" => Box::new(Expr::Not(e)),
     <t:Term> => Box::new(Expr::Term(t)),
+    "(" "!" <e:Expr> ")" => Box::new(Expr::Not(e)),
+    "(" <l:Expr> "|" <r:Expr> ")" => Box::new(Expr::Or(l, r)),
+    "(" <l:Expr> "&" <r:Expr> ")" => Box::new(Expr::And(l, r)),
+    "(" <l:Expr> "^" <r:Expr> ")" => Box::new(Expr::Xor(l, r)),
     "(" <Expr> ")"
 };
