@@ -22,30 +22,30 @@ fn main() {
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
 
-    let graph = rbc::de::aag(&buf).unwrap();
+    let graph = rbc::aag::aag(&buf).unwrap();
 
     let mut state = HashMap::<usize, Box<aig::AIG>>::new();
 
     for (i, input) in graph.0.iter().enumerate() {
-        state.insert(input.variable, Box::new(aig::AIG::G(aig::Sym(i))));
+        state.insert(input.var, Box::new(aig::AIG::G(aig::Sym(i))));
     }
 
-    let mut rem: VecDeque<rbc::de::A> = graph.2.clone().into();
+    let mut rem: VecDeque<rbc::aag::A> = graph.2.clone().into();
 
     while !rem.is_empty() {
         let cur = rem.pop_back().unwrap();
-        if let (Some(rhs0), Some(rhs1)) = (state.get(&cur.rhs0), state.get(&cur.rhs1)) {
-            let r0 = if cur.rhs0_negate == 0 {
+        if let (Some(rhs0), Some(rhs1)) = (state.get(&cur.rhs0.var), state.get(&cur.rhs1.var)) {
+            let r0 = if !cur.rhs0.neg {
                 rhs0.clone()
             } else {
                 !rhs0.clone()
             };
-            let r1 = if cur.rhs1_negate == 0 {
+            let r1 = if !cur.rhs1.neg {
                 rhs1.clone()
             } else {
                 !rhs1.clone()
             };
-            state.insert(cur.lhs, r0 & r1);
+            state.insert(cur.lhs.var, r0 & r1);
         } else {
             rem.push_front(cur);
         }
@@ -54,8 +54,8 @@ fn main() {
     let mut outputs: Vec<Box<aig::AIG>> = vec![];
 
     for output in &graph.1 {
-        let node = state.get(&output.variable).unwrap();
-        outputs.push(if output.negate == 0 {
+        let node = state.get(&output.var).unwrap();
+        outputs.push(if !output.neg {
             node.clone()
         } else {
             !node.clone()
@@ -88,7 +88,6 @@ fn main() {
         match args.command {
             1 => {
                 // Return the design as a canonical SOP
-                print!("{} = ", graph.1[i].symbol.clone().unwrap());
                 for term in minterms {
                     print!("{} + ", term);
                 }
@@ -96,21 +95,19 @@ fn main() {
             }
             2 => {
                 // Return the design as a canonical POS
-                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
+                println!("{:?}", maxterms);
             }
             3 => {
                 // Return the design INVERSE as a canonical SOP
-                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
+                println!("{:?}", maxterms);
             }
             4 => {
                 // Return the design INVERSE as a canonical POS
-                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
+                println!("{:?}", maxterms);
             }
             5 => {
                 // Return a minimized number of literals representation in SOP
                 // Report on the number of saved literals vs. the canonical version
-
-                println!("{} =", graph.1[i].symbol.clone().unwrap());
 
                 let mut columns = minterms.clone();
                 let mut rows = reduce(&columns);
@@ -155,11 +152,7 @@ fn main() {
             }
             7 => {
                 // Report the number of Prime Implicants
-                println!(
-                    "{} = {}",
-                    graph.1[i].symbol.clone().unwrap(),
-                    reduce(&minterms).len()
-                );
+                println!("{}", reduce(&minterms).len());
             }
             8 => {
                 // Report the number of Essential Prime Implicants
@@ -171,15 +164,11 @@ fn main() {
                         ess += 1;
                     }
                 }
-                println!("{} = {}", graph.1[i].symbol.clone().unwrap(), ess);
+                println!("{}", ess);
             }
             9 => {
                 // Report the number of ON-Set minterms
-                println!(
-                    "{} = {}",
-                    graph.1[i].symbol.clone().unwrap(),
-                    minterms.len()
-                );
+                println!("{}", minterms.len());
             }
             10 => {
                 // Report the number of ON-Set maxterms
