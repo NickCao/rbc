@@ -136,16 +136,15 @@ fn main() {
             }
             8 => {
                 // Report the number of Essential Prime Implicants
+                let mut ess = 0;
                 let prime = reduce(&minterms);
-                for p in prime {
-                    print!("prime {} contains ", p);
-                    for m in &minterms {
-                        if p.containes(m) {
-                            print!("{} ", m);
-                        }
+                for m in &minterms {
+                    let rows: Vec<_> = prime.iter().filter(|p| p.containes(m)).collect();
+                    if rows.len() == 1 {
+                        ess += 1;
                     }
-                    println!();
                 }
+                println!("{} = {}", graph.1[i].symbol.clone().unwrap(), ess);
             }
             9 => {
                 // Report the number of ON-Set minterms
