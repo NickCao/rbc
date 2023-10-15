@@ -25,7 +25,7 @@ impl Display for Tri {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-pub struct Imp(Vec<Tri>);
+pub struct Imp(pub Vec<Tri>);
 
 impl Display for Imp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -94,7 +94,7 @@ fn reduce_one(minterms: &HashSet<Imp>) -> (HashSet<Imp>, HashSet<Imp>) {
     (minterms.sub(&used), next)
 }
 
-fn reduce(minterms: &HashSet<Imp>) -> HashSet<Imp> {
+pub fn reduce(minterms: &HashSet<Imp>) -> HashSet<Imp> {
     let mut essential = HashSet::<Imp>::default();
     let mut curr = minterms.clone();
     loop {

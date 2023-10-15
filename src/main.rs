@@ -1,7 +1,8 @@
 use boolean_expression::{BDDFunc, Expr, BDD};
 use clap::Parser;
+use rbc::qmc::{Imp, Tri};
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     fmt::Debug,
     io::Read,
 };
@@ -74,17 +75,23 @@ fn main() {
     }
 
     for (i, output) in outputs.iter().enumerate() {
-        let mut minterms = vec![];
+        let mut minterms = HashSet::new();
         let mut maxterms = vec![];
 
         for term in 0..2_usize.pow(graph.0.len() as u32) {
             let mut input = HashMap::<String, bool>::default();
+            let mut imp = vec![];
             for i in 0..graph.0.len() {
                 input.insert(graph.0[i].symbol.clone().unwrap(), ((term >> i) & 1) == 1);
+                imp.push(if ((term >> i) & 1) == 1 {
+                    Tri::T
+                } else {
+                    Tri::F
+                });
             }
             let result = bdd.evaluate(*output, &input);
             if result {
-                minterms.push(term);
+                minterms.insert(Imp(imp));
             } else {
                 maxterms.push(term);
             }
@@ -93,7 +100,11 @@ fn main() {
         match args.command {
             1 => {
                 // Return the design as a canonical SOP
-                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), minterms);
+                print!("{} = ", graph.1[i].symbol.clone().unwrap());
+                for term in minterms {
+                    print!("{} + ", term);
+                }
+                println!();
             }
             2 => {
                 // Return the design as a canonical POS
