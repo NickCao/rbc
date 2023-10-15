@@ -22,7 +22,7 @@ fn main() {
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
 
-    let graph = rbc::aag::aag(&buf).unwrap();
+    let graph = rbc::aag::parse(&buf).unwrap();
 
     let mut state = HashMap::<usize, Box<aig::AIG>>::new();
 
@@ -30,7 +30,7 @@ fn main() {
         state.insert(input.var, Box::new(aig::AIG::G(aig::Sym(i))));
     }
 
-    let mut rem: VecDeque<rbc::aag::A> = graph.2.clone().into();
+    let mut rem: VecDeque<rbc::aag::And> = graph.2.clone().into();
 
     while !rem.is_empty() {
         let cur = rem.pop_back().unwrap();
