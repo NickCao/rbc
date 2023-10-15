@@ -130,12 +130,15 @@ fn main() {
 
                 let mut chosen: HashSet<Imp> = HashSet::new();
 
+                let mut fallback = false;
+
                 loop {
                     let mut covered: HashSet<Imp> = HashSet::new();
 
                     for col in &columns {
                         let cover: Vec<_> = rows.iter().filter(|p| p.containes(col)).collect();
-                        if cover.len() == 1 {
+                        if cover.len() == 1 || fallback {
+                            fallback = false;
                             println!("{} is ess", &cover[0]);
                             chosen.insert(cover[0].clone());
                             for col in &columns {
@@ -150,6 +153,12 @@ fn main() {
 
                     if columns.is_empty() {
                         break;
+                    }
+
+                    if covered.is_empty() {
+                        fallback = true;
+                    } else {
+                        fallback = false;
                     }
                 }
             }
