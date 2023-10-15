@@ -42,6 +42,15 @@ impl Display for Imp {
 }
 
 impl Imp {
+    pub fn literals(&self) -> usize {
+        self.0
+            .iter()
+            .filter(|x| match *x {
+                Tri::T | Tri::F => true,
+                Tri::X => false,
+            })
+            .count()
+    }
     pub fn containes(&self, other: &Self) -> bool {
         assert_eq!(self.0.len(), other.0.len());
         for (l, r) in self.0.iter().zip(other.0.iter()) {
