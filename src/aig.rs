@@ -29,11 +29,11 @@ impl std::ops::Not for Box<AIG> {
 }
 
 impl AIG {
-    pub fn eval(&self, inputs: &[bool]) -> bool {
+    pub fn eval(&self, syms: &[bool]) -> bool {
         match self {
-            AIG::A(And(l, r)) => l.eval(inputs) & r.eval(inputs),
-            AIG::I(Inv(r)) => !r.eval(inputs),
-            AIG::G(Sym(i)) => inputs[*i],
+            AIG::A(And(l, r)) => l.eval(syms) & r.eval(syms),
+            AIG::I(Inv(r)) => !r.eval(syms),
+            AIG::G(Sym(i)) => syms[*i],
         }
     }
 }
