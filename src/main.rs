@@ -118,7 +118,6 @@ fn main() {
                         let cover: Vec<_> = rows.iter().filter(|p| p.containes(col)).collect();
                         if cover.len() == 1 || fallback {
                             fallback = false;
-                            println!("{} is ess", &cover[0]);
                             chosen.insert(cover[0].clone());
                             for col in &columns {
                                 if cover[0].containes(col) {
@@ -136,6 +135,16 @@ fn main() {
 
                     fallback = covered.is_empty();
                 }
+
+                println!(
+                    "minimized SOP of output {}: {}",
+                    i,
+                    chosen
+                        .iter()
+                        .map(Imp::to_string)
+                        .collect::<Vec<_>>()
+                        .join(" + ")
+                );
             }
             6 => {
                 // Return a minimized number of literals representation in POS
