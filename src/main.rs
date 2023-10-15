@@ -149,9 +149,56 @@ fn main() {
                 );
             }
             6 => {
-                // FIXME
                 // Return a minimized number of literals representation in POS
                 // Report on the number of saved literals vs. the canonical version
+
+                let mut columns = maxterms.clone();
+                let rows = reduce(&columns);
+
+                let mut chosen: HashSet<Imp> = HashSet::new();
+
+                let mut fallback = false;
+
+                loop {
+                    let mut covered: HashSet<Imp> = HashSet::new();
+
+                    for col in &columns {
+                        let cover: Vec<_> = rows.iter().filter(|p| p.containes(col)).collect();
+                        if cover.len() == 1 || fallback {
+                            fallback = false;
+                            chosen.insert(cover[0].clone());
+                            for col in &columns {
+                                if cover[0].containes(col) {
+                                    covered.insert(col.clone());
+                                }
+                            }
+                        }
+                    }
+
+                    columns = columns.sub(&covered);
+
+                    if columns.is_empty() {
+                        break;
+                    }
+
+                    fallback = covered.is_empty();
+                }
+
+                println!(
+                    "minimized POS of output {}: {}, saved {} literals",
+                    i,
+                    chosen
+                        .clone()
+                        .into_iter()
+                        .map(ImpMax::from)
+                        .collect::<Vec<_>>()
+                        .iter()
+                        .map(ImpMax::to_string)
+                        .collect::<Vec<_>>()
+                        .join(" + "),
+                    maxterms.iter().map(Imp::literals).sum::<usize>()
+                        - chosen.iter().map(Imp::literals).sum::<usize>()
+                );
             }
             7 => {
                 // Report the number of Prime Implicants

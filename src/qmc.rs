@@ -145,7 +145,7 @@ impl Display for ImpMax {
                 .iter()
                 .map(Tri::to_string)
                 .collect::<Vec<_>>()
-                .join("+")
+                .join(" + ")
         )
     }
 }
