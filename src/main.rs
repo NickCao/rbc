@@ -110,7 +110,7 @@ fn main() {
                         .join("")
                 );
             }
-            5 => {
+            5 | 11 => {
                 // Return a minimized number of literals representation in SOP
                 // Report on the number of saved literals vs. the canonical version
 
@@ -146,17 +146,30 @@ fn main() {
                     fallback = covered.is_empty();
                 }
 
-                println!(
-                    "minimized SOP of output {}: {}, saved {} literals",
-                    i,
-                    chosen
-                        .iter()
-                        .map(Imp::to_string)
-                        .collect::<Vec<_>>()
-                        .join(" + "),
-                    minterms.iter().map(Imp::literals).sum::<usize>()
-                        - chosen.iter().map(Imp::literals).sum::<usize>()
-                );
+                if args.command == 5 {
+                    println!(
+                        "minimized SOP of output {}: {}, saved {} literals",
+                        i,
+                        chosen
+                            .iter()
+                            .map(Imp::to_string)
+                            .collect::<Vec<_>>()
+                            .join(" + "),
+                        minterms.iter().map(Imp::literals).sum::<usize>()
+                            - chosen.iter().map(Imp::literals).sum::<usize>()
+                    );
+                } else {
+                    for term in chosen {
+                        println!(
+                            "{} {}",
+                            term,
+                            (0..outputs.len())
+                                .map(|j| if i == j { "1" } else { "0" })
+                                .collect::<Vec<_>>()
+                                .join("")
+                        );
+                    }
+                }
             }
             6 => {
                 // Return a minimized number of literals representation in POS
@@ -247,21 +260,6 @@ fn main() {
                     i,
                     maxterms.len()
                 );
-            }
-            11 => {
-                // Command of your choice #1
-                println!("truth table of output {}:", i);
-                for line in truthtab {
-                    println!(
-                        "{} {}",
-                        line.0
-                            .iter()
-                            .map(|x| if *x { "1" } else { "0" })
-                            .collect::<Vec<_>>()
-                            .join(""),
-                        if line.1 { "1" } else { "0" }
-                    );
-                }
             }
             12 => {
                 // Command of your choice #2
