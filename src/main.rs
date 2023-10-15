@@ -58,7 +58,7 @@ fn main() {
             2 => {
                 // Return the design as a canonical POS
                 println!(
-                    "canonical SOP of output {}: {}",
+                    "canonical POS of output {}: {}",
                     i,
                     maxterms
                         .clone()
@@ -85,7 +85,19 @@ fn main() {
             }
             4 => {
                 // Return the design INVERSE as a canonical POS
-                println!("{:?}", maxterms);
+                println!(
+                    "canonical POS of output {} INVERSE: {}",
+                    i,
+                    minterms
+                        .clone()
+                        .into_iter()
+                        .map(ImpMax::from)
+                        .collect::<Vec<_>>()
+                        .iter()
+                        .map(ImpMax::to_string)
+                        .collect::<Vec<_>>()
+                        .join("")
+                );
             }
             5 => {
                 // Return a minimized number of literals representation in SOP
