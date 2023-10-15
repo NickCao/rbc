@@ -5,6 +5,7 @@ use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt::Debug,
     io::Read,
+    ops::Sub,
 };
 
 /// RBC: System for Combinational Logic Synthesis
@@ -121,6 +122,36 @@ fn main() {
             5 => {
                 // Return a minimized number of literals representation in SOP
                 // Report on the number of saved literals vs. the canonical version
+
+                println!("{} =", graph.1[i].symbol.clone().unwrap());
+
+                let mut columns = minterms.clone();
+                let mut rows = reduce(&columns);
+
+                let mut chosen: HashSet<Imp> = HashSet::new();
+
+                loop {
+                    let mut covered: HashSet<Imp> = HashSet::new();
+
+                    for col in &columns {
+                        let cover: Vec<_> = rows.iter().filter(|p| p.containes(col)).collect();
+                        if cover.len() == 1 {
+                            println!("{} is ess", &cover[0]);
+                            chosen.insert(cover[0].clone());
+                            for col in &columns {
+                                if cover[0].containes(col) {
+                                    covered.insert(col.clone());
+                                }
+                            }
+                        }
+                    }
+
+                    columns = columns.sub(&covered);
+
+                    if columns.is_empty() {
+                        break;
+                    }
+                }
             }
             6 => {
                 // Return a minimized number of literals representation in POS
