@@ -1,0 +1,30 @@
+#[derive(Debug)]
+pub struct Term(pub usize);
+
+#[derive(Debug)]
+pub struct Neg(pub Box<Node>);
+
+#[derive(Debug)]
+pub struct Id(pub Box<Node>);
+
+#[derive(Debug)]
+pub struct And(pub Box<Node>, pub Box<Node>);
+
+#[derive(Debug)]
+pub enum Node {
+    T(Term),
+    N(Neg),
+    A(And),
+    D(Id),
+}
+
+impl Node {
+    pub fn eval(&self, inputs: &[bool]) -> bool {
+        match self {
+            Node::T(Term(i)) => inputs[*i],
+            Node::N(Neg(r)) => !r.eval(inputs),
+            Node::A(And(l, r)) => l.eval(inputs) & r.eval(inputs),
+            Node::D(Id(r)) => r.eval(inputs),
+        }
+    }
+}
