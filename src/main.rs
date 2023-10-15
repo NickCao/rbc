@@ -149,20 +149,25 @@ fn main() {
                 );
             }
             6 => {
+                // FIXME
                 // Return a minimized number of literals representation in POS
                 // Report on the number of saved literals vs. the canonical version
             }
             7 => {
                 // Report the number of Prime Implicants
-                println!("{}", reduce(&minterms).len());
+                println!(
+                    "number of Prime Implicants of output {}: {}",
+                    i,
+                    reduce(&minterms).len()
+                );
             }
             8 => {
+                // FIXME
                 // Report the number of Essential Prime Implicants
                 let mut ess = 0;
                 let prime = reduce(&minterms);
                 for m in &minterms {
-                    let rows: Vec<_> = prime.iter().filter(|p| p.containes(m)).collect();
-                    if rows.len() == 1 {
+                    if prime.iter().filter(|p| p.containes(m)).count() == 1 {
                         ess += 1;
                     }
                 }
