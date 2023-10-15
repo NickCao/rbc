@@ -49,4 +49,11 @@ impl AIG {
             AIG::G(Sym(i)) => syms[*i],
         }
     }
+    pub fn syms(&self) -> usize {
+        match self {
+            AIG::A(And(l, r)) => std::cmp::max(l.syms(), r.syms()),
+            AIG::I(Inv(r)) => r.syms(),
+            AIG::G(Sym(i)) => *i + 1,
+        }
+    }
 }

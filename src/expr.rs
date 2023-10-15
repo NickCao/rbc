@@ -10,9 +10,9 @@ pub enum Expr {
     Xor(Box<Expr>, Box<Expr>),
 }
 
-impl Into<Box<aig::AIG>> for Box<Expr> {
-    fn into(self) -> Box<aig::AIG> {
-        match *self {
+impl From<Box<Expr>> for Box<aig::AIG> {
+    fn from(val: Box<Expr>) -> Self {
+        match *val {
             Expr::Term(v) => (v as usize - 'A' as usize).into(),
             Expr::Not(v) => {
                 let v: Box<aig::AIG> = v.into();

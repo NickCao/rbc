@@ -1,5 +1,4 @@
 use clap::Parser;
-
 use rbc::qmc::{reduce, Imp, ImpMax, Tri};
 use std::{collections::HashSet, fmt::Debug, ops::Sub};
 
@@ -10,15 +9,24 @@ struct Args {
     #[arg(long, short)]
     command: usize,
 
-    file: String,
+    file: Option<String>,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let buf = std::fs::read(args.file).unwrap();
-
-    let (inputs, outputs) = rbc::aag::parse(&buf).unwrap();
+    let (inputs, outputs) = if let Some(file) = args.file {
+        let buf = std::fs::read(file).unwrap();
+        rbc::aag::parse(&buf).unwrap()
+    } else {
+        let mut buf = String::new();
+        std::io::stdin().read_line(&mut buf).unwrap();
+        let e: Box<rbc::aig::AIG> = rbc::expr::calculator1::ExprParser::new()
+            .parse(&buf)
+            .unwrap()
+            .into();
+        (e.syms(), vec![e])
+    };
 
     for (i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
