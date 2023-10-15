@@ -1,19 +1,13 @@
-use nom::bytes::complete::tag;
-use nom::character::complete::newline;
-use nom::character::complete::space1;
-use nom::character::complete::u64;
-use nom::combinator::flat_map;
-use nom::combinator::map;
-use nom::multi::count;
-use nom::sequence::delimited;
-use nom::sequence::terminated;
-use nom::sequence::{preceded, tuple};
-use nom::Finish;
-use nom::IResult;
+use nom::{
+    bytes::complete::tag,
+    character::complete::{newline, space1, u64},
+    combinator::{flat_map, map},
+    multi::count,
+    sequence::{delimited, preceded, terminated, tuple},
+    Finish, IResult,
+};
 
-#[derive(Debug)]
 struct Header {
-    m: u64,
     i: u64,
     l: u64,
     o: u64,
@@ -27,7 +21,7 @@ fn header(input: &[u8]) -> IResult<&[u8], Header> {
             tuple((
                 space1, u64, space1, u64, space1, u64, space1, u64, space1, u64,
             )),
-            |(_, m, _, i, _, l, _, o, _, a)| Header { m, i, l, o, a },
+            |(_, _, _, i, _, l, _, o, _, a)| Header { i, l, o, a },
         ),
     )(input)
 }
