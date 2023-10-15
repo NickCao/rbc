@@ -1,8 +1,8 @@
 use clap::Parser;
-use rbc::aig;
+
 use rbc::qmc::{reduce, Imp, Tri};
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashSet},
     fmt::Debug,
     io::Read,
     ops::Sub,
@@ -26,6 +26,7 @@ fn main() {
 
     for (i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
+        let mut minterms_inv = HashSet::new();
         let mut maxterms = vec![];
 
         for term in 0..2_usize.pow(inputs as u32) {
@@ -43,6 +44,7 @@ fn main() {
             if result {
                 minterms.insert(Imp(imp));
             } else {
+                minterms_inv.insert(Imp(imp));
                 maxterms.push(term);
             }
         }
@@ -66,7 +68,15 @@ fn main() {
             }
             3 => {
                 // Return the design INVERSE as a canonical SOP
-                println!("{:?}", maxterms);
+                println!(
+                    "canonical SOP of output {} INVERSE: {}",
+                    i,
+                    minterms_inv
+                        .iter()
+                        .map(Imp::to_string)
+                        .collect::<Vec<_>>()
+                        .join(" + ")
+                );
             }
             4 => {
                 // Return the design INVERSE as a canonical POS
