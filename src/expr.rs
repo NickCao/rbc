@@ -30,4 +30,20 @@ fn calculator1() {
             Box::new(Expr::Term('B'))
         ))
     );
+
+    assert_eq!(
+        calculator1::ExprParser::new()
+            .parse("((A*(!B))+(!(A*B)))")
+            .unwrap(),
+        Box::new(Expr::Or(
+            Box::new(Expr::And(
+                Box::new(Expr::Term('A')),
+                Box::new(Expr::Not(Box::new(Expr::Term('B'))))
+            )),
+            Box::new(Expr::Not(Box::new(Expr::And(
+                Box::new(Expr::Term('A')),
+                Box::new(Expr::Term('B'))
+            ))))
+        ))
+    );
 }
