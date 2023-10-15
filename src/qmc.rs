@@ -1,6 +1,6 @@
-use std::fmt::Display;
+use std::{collections::HashSet, fmt::Display, hash::Hash, ops::Sub};
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
 pub enum Tri {
     /// false
     F,
@@ -24,7 +24,7 @@ impl Display for Tri {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Imp(Vec<Tri>);
 
 impl Display for Imp {
@@ -65,8 +65,42 @@ impl Imp {
     }
 }
 
+fn reduce_one(minterms: &HashSet<Imp>) -> (HashSet<Imp>, HashSet<Imp>) {
+    let mut next = HashSet::<Imp>::default();
+    let mut used = HashSet::<Imp>::default();
+    for a in minterms {
+        for b in minterms {
+            if a == b {
+                continue;
+            }
+            if let Some(v) = a.merge(b) {
+                next.insert(v);
+                used.insert(a.clone());
+                used.insert(b.clone());
+            }
+        }
+    }
+    (minterms.sub(&used), next)
+}
+
+fn reduce(minterms: &HashSet<Imp>) -> HashSet<Imp> {
+    let mut essential = HashSet::<Imp>::default();
+    let mut curr = minterms.clone();
+    loop {
+        let (rem, next) = reduce_one(&curr);
+        essential.extend(rem);
+        curr = next.clone();
+        if next.is_empty() {
+            break;
+        }
+    }
+    essential
+}
+
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
+
     use crate::qmc::{Imp, Tri};
 
     #[test]
@@ -79,5 +113,19 @@ mod test {
         assert_eq!(m0.merge(&m1), Some(m2.clone()));
         assert_eq!(m0.merge(&m2), None);
         assert_eq!(m2.merge(&m3), Some(m4.clone()));
+    }
+
+    #[test]
+    fn reduce() {
+        let m4 = Imp(vec![Tri::F, Tri::T, Tri::F, Tri::F]);
+        let m8 = Imp(vec![Tri::T, Tri::F, Tri::F, Tri::F]);
+        let m9 = Imp(vec![Tri::T, Tri::F, Tri::F, Tri::T]);
+        let m10 = Imp(vec![Tri::T, Tri::F, Tri::T, Tri::F]);
+        let m11 = Imp(vec![Tri::T, Tri::F, Tri::T, Tri::T]);
+        let m12 = Imp(vec![Tri::T, Tri::T, Tri::F, Tri::F]);
+        let m14 = Imp(vec![Tri::T, Tri::T, Tri::T, Tri::F]);
+        let m15 = Imp(vec![Tri::T, Tri::T, Tri::T, Tri::T]);
+        let mset = HashSet::from([m4, m8, m9, m10, m11, m12, m14, m15]);
+        dbg!(super::reduce(&mset));
     }
 }
