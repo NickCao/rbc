@@ -1,4 +1,4 @@
-# Benchmark "adder" written by ABC on Sun Oct 15 12:00:59 2023
+# Benchmark "adder" written by ABC on Sun Oct 15 12:20:40 2023
 .i 4
 .o 3
 .ilb a[0] a[1] b[0] b[1]

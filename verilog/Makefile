@@ -1,9 +1,9 @@
 all: adder.pla popcount.pla adder.aag popcount.aag
 
-%.aag : %.sv
-	yosys -p "read_verilog -sv $^; aigmap; write_aiger -ascii -symbols $@"
+%.aig : %.sv
+	yosys -p "read_verilog -sv $^; synth; aigmap; write_aiger -symbols $@"
 
-%.aig : %.aag
+%.aag : %.aig
 	aigtoaig $^ $@
 
 %.pla : %.aig
