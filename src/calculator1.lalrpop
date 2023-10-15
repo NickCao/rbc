@@ -2,7 +2,7 @@ use crate::expr::Expr;
 
 grammar;
 
-pub Term: String = <r"[A-Z]"> => <>.to_string();
+pub Term: char = <r"[A-Z]"> => <>.chars().nth(0).unwrap();
 
 pub Expr: Box<Expr> = {
     "(" <l:Expr> "+" <r:Expr> ")" => Box::new(Expr::Or(l, r)),
