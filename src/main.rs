@@ -24,7 +24,7 @@ fn main() {
 
     let (inputs, outputs) = rbc::aag::parse(&buf).unwrap();
 
-    for (_i, output) in outputs.iter().enumerate() {
+    for (i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
         let mut maxterms = vec![];
 
@@ -50,10 +50,15 @@ fn main() {
         match args.command {
             1 => {
                 // Return the design as a canonical SOP
-                for term in minterms {
-                    print!("{} + ", term);
-                }
-                println!();
+                println!(
+                    "canonical SOP of output {}: {}",
+                    i,
+                    minterms
+                        .iter()
+                        .map(Imp::to_string)
+                        .collect::<Vec<_>>()
+                        .join(" + ")
+                );
             }
             2 => {
                 // Return the design as a canonical POS
