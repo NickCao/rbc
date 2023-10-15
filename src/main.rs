@@ -23,6 +23,7 @@ fn main() {
     for (i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
         let mut maxterms = HashSet::new();
+        let mut truthtab = vec![];
 
         for term in 0..2_usize.pow(inputs as u32) {
             let mut input = vec![];
@@ -36,6 +37,7 @@ fn main() {
                 });
             }
             let result = output.eval(&input);
+            truthtab.push((input, result));
             if result {
                 minterms.insert(Imp(imp));
             } else {
@@ -240,6 +242,18 @@ fn main() {
             }
             11 => {
                 // Command of your choice #1
+                println!("truth table of output {}:", i);
+                for line in truthtab {
+                    println!(
+                        "{} {}",
+                        line.0
+                            .iter()
+                            .map(|x| if *x { "1" } else { "0" })
+                            .collect::<Vec<_>>()
+                            .join(""),
+                        if line.1 { "1" } else { "0" }
+                    );
+                }
             }
             12 => {
                 // Command of your choice #2
