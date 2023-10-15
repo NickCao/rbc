@@ -136,6 +136,16 @@ fn main() {
             }
             8 => {
                 // Report the number of Essential Prime Implicants
+                let prime = reduce(&minterms);
+                for p in prime {
+                    print!("prime {} contains ", p);
+                    for m in &minterms {
+                        if p.containes(m) {
+                            print!("{} ", m);
+                        }
+                    }
+                    println!();
+                }
             }
             9 => {
                 // Report the number of ON-Set minterms
