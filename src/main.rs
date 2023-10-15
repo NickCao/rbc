@@ -1,6 +1,6 @@
 use boolean_expression::{BDDFunc, Expr, BDD};
 use clap::Parser;
-use rbc::qmc::{Imp, Tri};
+use rbc::qmc::{reduce, Imp, Tri};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt::Debug,
@@ -128,6 +128,11 @@ fn main() {
             }
             7 => {
                 // Report the number of Prime Implicants
+                println!(
+                    "{} = {}",
+                    graph.1[i].symbol.clone().unwrap(),
+                    reduce(&minterms).len()
+                );
             }
             8 => {
                 // Report the number of Essential Prime Implicants
