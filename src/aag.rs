@@ -1,3 +1,4 @@
+use crate::aig;
 use nom::{
     bytes::complete::tag,
     character::complete::{newline, space1, u64},
@@ -6,6 +7,7 @@ use nom::{
     sequence::{delimited, preceded, terminated, tuple},
     Finish, IResult,
 };
+use std::collections::{HashMap, VecDeque};
 
 struct Header {
     i: u64,
@@ -59,8 +61,8 @@ fn and(input: &[u8]) -> IResult<&[u8], And> {
     )(input)
 }
 
-pub fn parse(input: &[u8]) -> Result<(Vec<Lit>, Vec<Lit>, Vec<And>), nom::error::Error<&[u8]>> {
-    Ok(flat_map(terminated(header, newline), |h| {
+pub fn parse(input: &[u8]) -> Result<(usize, Vec<Box<aig::AIG>>), nom::error::Error<&[u8]>> {
+    let ast = flat_map(terminated(header, newline), |h| {
         assert_eq!(h.l, 0);
         tuple((
             count(terminated(literal, newline), h.i as usize),
@@ -69,5 +71,48 @@ pub fn parse(input: &[u8]) -> Result<(Vec<Lit>, Vec<Lit>, Vec<And>), nom::error:
         ))
     })(input)
     .finish()?
-    .1)
+    .1;
+
+    let mut graph: HashMap<usize, Box<aig::AIG>> = ast
+        .0
+        .iter()
+        .enumerate()
+        .map(|(i, v)| (v.var, i.into()))
+        .collect();
+
+    let mut queue: VecDeque<And> = ast.2.into();
+
+    while !queue.is_empty() {
+        let cur = queue.pop_back().unwrap();
+        if let (Some(rhs0), Some(rhs1)) = (graph.get(&cur.rhs0.var), graph.get(&cur.rhs1.var)) {
+            let r0 = if !cur.rhs0.neg {
+                rhs0.clone()
+            } else {
+                !rhs0.clone()
+            };
+            let r1 = if !cur.rhs1.neg {
+                rhs1.clone()
+            } else {
+                !rhs1.clone()
+            };
+            graph.insert(cur.lhs.var, r0 & r1);
+        } else {
+            queue.push_front(cur);
+        }
+    }
+
+    let outputs = ast
+        .1
+        .iter()
+        .map(|v| {
+            let n = graph.get(&v.var).unwrap();
+            if v.neg {
+                !n.clone()
+            } else {
+                n.clone()
+            }
+        })
+        .collect();
+
+    Ok((ast.0.len(), outputs))
 }

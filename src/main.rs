@@ -22,54 +22,16 @@ fn main() {
     let mut buf = vec![];
     std::io::stdin().read_to_end(&mut buf).unwrap();
 
-    let graph = rbc::aag::parse(&buf).unwrap();
-
-    let mut state = HashMap::<usize, Box<aig::AIG>>::new();
-
-    for (i, input) in graph.0.iter().enumerate() {
-        state.insert(input.var, i.into());
-    }
-
-    let mut rem: VecDeque<rbc::aag::And> = graph.2.clone().into();
-
-    while !rem.is_empty() {
-        let cur = rem.pop_back().unwrap();
-        if let (Some(rhs0), Some(rhs1)) = (state.get(&cur.rhs0.var), state.get(&cur.rhs1.var)) {
-            let r0 = if !cur.rhs0.neg {
-                rhs0.clone()
-            } else {
-                !rhs0.clone()
-            };
-            let r1 = if !cur.rhs1.neg {
-                rhs1.clone()
-            } else {
-                !rhs1.clone()
-            };
-            state.insert(cur.lhs.var, r0 & r1);
-        } else {
-            rem.push_front(cur);
-        }
-    }
-
-    let mut outputs: Vec<Box<aig::AIG>> = vec![];
-
-    for output in &graph.1 {
-        let node = state.get(&output.var).unwrap();
-        outputs.push(if !output.neg {
-            node.clone()
-        } else {
-            !node.clone()
-        });
-    }
+    let (inputs, outputs) = rbc::aag::parse(&buf).unwrap();
 
     for (_i, output) in outputs.iter().enumerate() {
         let mut minterms = HashSet::new();
         let mut maxterms = vec![];
 
-        for term in 0..2_usize.pow(graph.0.len() as u32) {
+        for term in 0..2_usize.pow(inputs as u32) {
             let mut input = vec![];
             let mut imp = vec![];
-            for i in 0..graph.0.len() {
+            for i in 0..inputs {
                 input.push(((term >> i) & 1) == 1);
                 imp.push(if ((term >> i) & 1) == 1 {
                     Tri::T
