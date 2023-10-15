@@ -170,10 +170,19 @@ fn main() {
             }
             9 => {
                 // Report the number of ON-Set minterms
-                println!("{}", minterms.len());
+                println!(
+                    "number of ON-Set minterms of output {}: {}",
+                    i,
+                    minterms.len()
+                );
             }
             10 => {
                 // Report the number of ON-Set maxterms
+                println!(
+                    "number of ON-Set maxterms of output {}: {}",
+                    i,
+                    maxterms.len()
+                );
             }
             11 => {
                 // Command of your choice #1
