@@ -139,6 +139,11 @@ fn main() {
             }
             9 => {
                 // Report the number of ON-Set minterms
+                println!(
+                    "{} = {}",
+                    graph.1[i].symbol.clone().unwrap(),
+                    minterms.len()
+                );
             }
             10 => {
                 // Report the number of ON-Set maxterms
