@@ -5,9 +5,6 @@ pub struct Term(pub usize);
 pub struct Neg(pub Box<Node>);
 
 #[derive(Debug, Clone)]
-pub struct Id(pub Box<Node>);
-
-#[derive(Debug, Clone)]
 pub struct And(pub Box<Node>, pub Box<Node>);
 
 #[derive(Debug, Clone)]
@@ -15,7 +12,6 @@ pub enum Node {
     T(Term),
     N(Neg),
     A(And),
-    D(Id),
 }
 
 impl Node {
@@ -24,7 +20,6 @@ impl Node {
             Node::T(Term(i)) => inputs[*i],
             Node::N(Neg(r)) => !r.eval(inputs),
             Node::A(And(l, r)) => l.eval(inputs) & r.eval(inputs),
-            Node::D(Id(r)) => r.eval(inputs),
         }
     }
 }
