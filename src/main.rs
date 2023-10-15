@@ -137,13 +137,15 @@ fn main() {
                 }
 
                 println!(
-                    "minimized SOP of output {}: {}",
+                    "minimized SOP of output {}: {}, saved {} literals",
                     i,
                     chosen
                         .iter()
                         .map(Imp::to_string)
                         .collect::<Vec<_>>()
-                        .join(" + ")
+                        .join(" + "),
+                    minterms.iter().map(Imp::literals).sum::<usize>()
+                        - chosen.iter().map(Imp::literals).sum::<usize>()
                 );
             }
             6 => {
