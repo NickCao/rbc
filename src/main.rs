@@ -73,11 +73,41 @@ fn main() {
         });
     }
 
-    for output in outputs {
-        println!("{}", print_expr(&bdd.to_expr(output)));
-    }
+    for (i, output) in outputs.iter().enumerate() {
+        let mut minterms = vec![];
+        let mut maxterms = vec![];
 
-    match args.command {
-        _ => unimplemented!(),
+        for term in 0..2_usize.pow(graph.0.len() as u32) {
+            let mut input = HashMap::<String, bool>::default();
+            for i in 0..graph.0.len() {
+                input.insert(graph.0[i].symbol.clone().unwrap(), ((term >> i) & 1) == 1);
+            }
+            let result = bdd.evaluate(*output, &input);
+            if result {
+                minterms.push(term);
+            } else {
+                maxterms.push(term);
+            }
+        }
+
+        match args.command {
+            1 => {
+                // Return the design as a canonical SOP
+                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), minterms);
+            }
+            2 => {
+                // Return the design as a canonical POS
+                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
+            }
+            3 => {
+                // Return the design INVERSE as a canonical SOP
+                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
+            }
+            4 => {
+                // Return the design INVERSE as a canonical POS
+                println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
+            }
+            _ => unimplemented!(),
+        }
     }
 }
