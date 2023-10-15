@@ -140,6 +140,13 @@ mod test {
         let m14 = Imp(vec![Tri::T, Tri::T, Tri::T, Tri::F]);
         let m15 = Imp(vec![Tri::T, Tri::T, Tri::T, Tri::T]);
         let mset = HashSet::from([m4, m8, m9, m10, m11, m12, m14, m15]);
-        dbg!(super::reduce(&mset));
+
+        let m16 = Imp(vec![Tri::T, Tri::X, Tri::X, Tri::F]);
+        let m17 = Imp(vec![Tri::T, Tri::F, Tri::X, Tri::X]);
+        let m18 = Imp(vec![Tri::X, Tri::T, Tri::F, Tri::F]);
+        let m19 = Imp(vec![Tri::T, Tri::X, Tri::T, Tri::X]);
+        let mred = HashSet::from([m16, m17, m18, m19]);
+
+        assert_eq!(super::reduce(&mset), mred);
     }
 }
