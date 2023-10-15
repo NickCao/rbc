@@ -107,6 +107,32 @@ fn main() {
                 // Return the design INVERSE as a canonical POS
                 println!("{} = {:?}", graph.1[i].symbol.clone().unwrap(), maxterms);
             }
+            5 => {
+                // Return a minimized number of literals representation in SOP
+                // Report on the number of saved literals vs. the canonical version
+            }
+            6 => {
+                // Return a minimized number of literals representation in POS
+                // Report on the number of saved literals vs. the canonical version
+            }
+            7 => {
+                // Report the number of Prime Implicants
+            }
+            8 => {
+                // Report the number of Essential Prime Implicants
+            }
+            9 => {
+                // Report the number of ON-Set minterms
+            }
+            10 => {
+                // Report the number of ON-Set maxterms
+            }
+            11 => {
+                // Command of your choice #1
+            }
+            12 => {
+                // Command of your choice #2
+            }
             _ => unimplemented!(),
         }
     }
