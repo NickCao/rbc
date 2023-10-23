@@ -1,4 +1,4 @@
-use std::{fmt::Display, io::Write};
+use std::fmt::Display;
 
 #[derive(Debug, Clone)]
 pub struct Sym(pub usize);
