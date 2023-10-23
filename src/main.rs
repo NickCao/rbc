@@ -235,16 +235,18 @@ fn main() {
             }
             8 => {
                 // Report the number of Essential Prime Implicants
-                let mut ess = 0;
+                let mut ess = HashSet::new();
                 let prime = reduce(&minterms);
                 for m in &minterms {
-                    if prime.iter().filter(|p| p.containes(m)).count() == 1 {
-                        ess += 1;
+                    let primes: Vec<_> = prime.iter().filter(|p| p.containes(m)).collect();
+                    if primes.len() == 1 {
+                        ess.insert(primes[0]);
                     }
                 }
                 println!(
                     "number of Essential Prime Implicants of output {}: {}",
-                    i, ess
+                    i,
+                    ess.len()
                 );
             }
             9 => {
