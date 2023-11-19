@@ -60,14 +60,14 @@ fn minimize(minterms: Vec<usize>, variables: HashMap<String, usize>) -> PyResult
             let v = variables.iter().find(|(k, v)| **v == i).unwrap().0;
             match y {
                 Tri::T => comp.push(v.to_string()),
-                Tri::F => comp.push("~".to_string() + v),
+                Tri::F => comp.push("~ ".to_string() + v),
                 Tri::X => (),
             }
         }
-        expr.push(comp.join("*"))
+        expr.push(comp.join(" * "))
     }
 
-    Ok(expr.join("+"))
+    Ok(expr.join(" + "))
 }
 
 #[pymodule]
